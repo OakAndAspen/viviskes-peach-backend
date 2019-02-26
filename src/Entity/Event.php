@@ -53,9 +53,15 @@ class Event
      */
     private $participations;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Topic", mappedBy="event")
+     */
+    private $topics;
+
     public function __construct()
     {
         $this->participations = new ArrayCollection();
+        $this->topics = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -160,6 +166,37 @@ class Event
             // set the owning side to null (unless already changed)
             if ($participation->getEvent() === $this) {
                 $participation->setEvent(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Topic[]
+     */
+    public function getTopics(): Collection
+    {
+        return $this->topics;
+    }
+
+    public function addTopic(Topic $topic): self
+    {
+        if (!$this->topics->contains($topic)) {
+            $this->topics[] = $topic;
+            $topic->setEvent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTopic(Topic $topic): self
+    {
+        if ($this->topics->contains($topic)) {
+            $this->topics->removeElement($topic);
+            // set the owning side to null (unless already changed)
+            if ($topic->getEvent() === $this) {
+                $topic->setEvent(null);
             }
         }
 
