@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Book;
 use App\Entity\Loan;
-use App\Entity\Partner;
 use App\Entity\User;
 use App\Service\JsonService as JS;
 use Doctrine\ORM\EntityManagerInterface;
