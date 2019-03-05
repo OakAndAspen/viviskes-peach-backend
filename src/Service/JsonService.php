@@ -6,6 +6,7 @@ use App\Entity\Book;
 use App\Entity\Event;
 use App\Entity\Loan;
 use App\Entity\Partner;
+use App\Entity\User;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -25,6 +26,40 @@ class JsonService
             'label' => $p->getLabel(),
             'url' => $p->getUrl()
         ];
+        return $data;
+    }
+
+    public static function getUser(User $u)
+    {
+        $data = [
+            'id' => $u->getId(),
+            'firstName' => $u->getFirstName(),
+            'lastName' => $u->getLastName(),
+            'celticName' => $u->getCelticName(),
+            'email' => $u->getEmail(),
+            'phone' => $u->getPhone(),
+            'isActive' => $u->getIsActive(),
+            'isAdmin' => $u->getIsAdmin(),
+            'address' => $u->getAddress(),
+            'npa' => $u->getNpa(),
+            'city' => $u->getCity(),
+            'newbie' => null,
+            'mentor' => null
+        ];
+
+        if ($u->getNewbie()) {
+            $data['newbie'] = [
+                'id' => $u->getNewbie()->getId(),
+                'fullName' => $u->getNewbie()->getFirstName() . " " . $u->getNewbie()->getLastName()
+            ];
+        }
+        if ($u->getMentor()) {
+            $data['mentor'] = [
+                'id' => $u->getMentor()->getId(),
+                'fullName' => $u->getMentor()->getFirstName() . " " . $u->getMentor()->getLastName()
+            ];
+        }
+
         return $data;
     }
 
