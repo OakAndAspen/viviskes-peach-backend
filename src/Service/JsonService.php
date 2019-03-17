@@ -3,11 +3,12 @@
 namespace App\Service;
 
 use App\Entity\Book;
+use App\Entity\Category;
 use App\Entity\Event;
 use App\Entity\Loan;
 use App\Entity\Partner;
+use App\Entity\Topic;
 use App\Entity\User;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 
 class JsonService
@@ -29,41 +30,32 @@ class JsonService
         return $data;
     }
 
-    public static function getUser(User $u)
+    public static function getUser(User $u, $details = false)
     {
         $data = [
             'id' => $u->getId(),
             'firstName' => $u->getFirstName(),
             'lastName' => $u->getLastName(),
-            'celticName' => $u->getCelticName(),
-            'email' => $u->getEmail(),
-            'phone' => $u->getPhone(),
-            'isActive' => $u->getIsActive(),
-            'isAdmin' => $u->getIsAdmin(),
-            'address' => $u->getAddress(),
-            'npa' => $u->getNpa(),
-            'city' => $u->getCity(),
-            'newbie' => null,
-            'mentor' => null
+            'celticName' => $u->getCelticName()
         ];
 
-        if ($u->getNewbie()) {
-            $data['newbie'] = [
-                'id' => $u->getNewbie()->getId(),
-                'fullName' => $u->getNewbie()->getFirstName() . " " . $u->getNewbie()->getLastName()
-            ];
+        if($details) {
+            $data['email'] = $u->getEmail();
+            $data['phone'] = $u->getPhone();
+            $data['isActive'] = $u->getIsActive();
+            $data['isAdmin'] = $u->getIsAdmin();
+            $data['address'] = $u->getAddress();
+            $data['npa'] = $u->getNpa();
+            $data['city'] = $u->getCity();
         }
-        if ($u->getMentor()) {
-            $data['mentor'] = [
-                'id' => $u->getMentor()->getId(),
-                'fullName' => $u->getMentor()->getFirstName() . " " . $u->getMentor()->getLastName()
-            ];
-        }
+
+        $data['newbie'] = $u->getNewbie() ? self::getUser($u->getNewbie()) : null;
+        $data['mentor'] = $u->getMentor() ? self::getUser($u->getMentor()) : null;
 
         return $data;
     }
 
-    public static function getEvent(Event $e)
+    public static function getEvent(Event $e, $participations = false)
     {
         $data = [
             'id' => $e->getId(),
@@ -72,20 +64,23 @@ class JsonService
             'start' => $e->getStart()->format('Y-m-d'),
             'end' => $e->getEnd()->format('Y-m-d'),
             'location' => $e->getLocation(),
-            'privacy' => $e->getPrivacy(),
-            'participations' => []
+            'privacy' => $e->getPrivacy()
         ];
 
-        foreach ($e->getParticipations() as $p) {
-            array_push($data['participations'], [
-                'user' => [
-                    'id' => $p->getUser()->getId(),
-                    'fullName' => $p->getUser()->getFirstName() . ' ' . $p->getUser()->getLastName(),
-                ],
-                'day' => $p->getDay()->format('Y-m-d'),
-                'status' => $p->getStatus()
-            ]);
+        if ($participations) {
+            $data['participations'] = [];
+            foreach ($e->getParticipations() as $p) {
+                array_push($data['participations'], [
+                    'user' => [
+                        'id' => $p->getUser()->getId(),
+                        'fullName' => $p->getUser()->getFirstName() . ' ' . $p->getUser()->getLastName(),
+                    ],
+                    'day' => $p->getDay()->format('Y-m-d'),
+                    'status' => $p->getStatus()
+                ]);
+            }
         }
+
         return $data;
     }
 
@@ -97,8 +92,8 @@ class JsonService
         ];
 
         $loan = $em->getRepository(Loan::class)->findOneBy([
-            "book" => $b,
-            "end" => null
+            'book' => $b,
+            'end' => null
         ]);
 
         if ($loan) $data['loan'] = [
@@ -108,6 +103,49 @@ class JsonService
             ],
             'start' => $loan->getStart()->format('Y-m-d')
         ];
+
+        return $data;
+    }
+
+    public static function getCategory(Category $c, $topics = false)
+    {
+        $data = [
+            'id' => $c->getId(),
+            'label' => $c->getLabel()
+        ];
+
+        if ($topics) {
+            $data['topics'] = [];
+            foreach ($c->getTopics() as $t) {
+                array_push($data['topics'], self::getTopic($t));
+            }
+        }
+
+        return $data;
+    }
+
+    public static function getTopic(Topic $t, $messages = false)
+    {
+        $data = [
+            'id' => $t->getId(),
+            'title' => $t->getTitle(),
+            'event' => $t->getEvent() ? self::getEvent($t->getEvent()) : null,
+            'category' => $t->getCategory() ? self::getCategory($t->getCategory()) : null,
+            'pinned' => $t->getPinned()
+        ];
+
+        if ($messages) {
+            $data['messages'] = [];
+            foreach ($t->getMessages() as $m) {
+                array_push($data['messages'], [
+                    'id' => $m->getId(),
+                    'author' => $m->getAuthor()->getFirstName() + $m->getAuthor()->getLastName(),
+                    'content' => $m->getContent(),
+                    'created' => $m->getCreated(),
+                    'edited' => $m->getEdited()
+                ]);
+            }
+        }
 
         return $data;
     }
