@@ -6,6 +6,7 @@ use App\Entity\Book;
 use App\Entity\Category;
 use App\Entity\Event;
 use App\Entity\Loan;
+use App\Entity\Message;
 use App\Entity\Partner;
 use App\Entity\Topic;
 use App\Entity\User;
@@ -146,6 +147,20 @@ class JsonService
                 ]);
             }
         }
+
+        return $data;
+    }
+
+    public static function getMessage(Message $m)
+    {
+        $data = [
+            'id' => $m->getId(),
+            'content' => $m->getContent(),
+            'author' => self::getUser($m->getAuthor()),
+            'topic' => self::getTopic($m->getTopic()),
+            'created' => $m->getCreated()->format('Ymd'),
+            'edited' => $m->getEdited()->format('Ymd')
+        ];
 
         return $data;
     }
