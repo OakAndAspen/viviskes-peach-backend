@@ -40,7 +40,7 @@ class JsonService
             'celticName' => $u->getCelticName()
         ];
 
-        if($details) {
+        if ($details) {
             $data['email'] = $u->getEmail();
             $data['phone'] = $u->getPhone();
             $data['isActive'] = $u->getIsActive();
@@ -48,10 +48,11 @@ class JsonService
             $data['address'] = $u->getAddress();
             $data['npa'] = $u->getNpa();
             $data['city'] = $u->getCity();
+            $newbie = $u->getNewbie();
+            $data['newbie'] = $newbie ? $newbie->getFirstName() . " " . $newbie->getLastName() : null;
+            $mentor = $u->getMentor();
+            $data['mentor'] = $mentor ? $mentor->getFirstName() . " " . $mentor->getLastName() : null;
         }
-
-        $data['newbie'] = $u->getNewbie() ? self::getUser($u->getNewbie()) : null;
-        $data['mentor'] = $u->getMentor() ? self::getUser($u->getMentor()) : null;
 
         return $data;
     }
@@ -138,29 +139,26 @@ class JsonService
         if ($messages) {
             $data['messages'] = [];
             foreach ($t->getMessages() as $m) {
-                array_push($data['messages'], [
-                    'id' => $m->getId(),
-                    'author' => $m->getAuthor()->getFirstName() + $m->getAuthor()->getLastName(),
-                    'content' => $m->getContent(),
-                    'created' => $m->getCreated(),
-                    'edited' => $m->getEdited()
-                ]);
+                array_push($data['messages'], self::getMessage($m));
             }
         }
 
         return $data;
     }
 
-    public static function getMessage(Message $m)
+    public static function getMessage(Message $m, $topic = false)
     {
         $data = [
             'id' => $m->getId(),
             'content' => $m->getContent(),
             'author' => self::getUser($m->getAuthor()),
-            'topic' => self::getTopic($m->getTopic()),
-            'created' => $m->getCreated()->format('Ymd'),
-            'edited' => $m->getEdited()->format('Ymd')
+            'created' => UtilityService::datetimeToString($m->getCreated()),
+            'edited' => UtilityService::datetimeToString($m->getEdited())
         ];
+
+        if($topic) {
+            $data['topic'] = self::getTopic($m->getTopic());
+        }
 
         return $data;
     }
