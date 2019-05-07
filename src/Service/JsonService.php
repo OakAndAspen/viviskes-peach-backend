@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
 use App\Entity\Book;
 use App\Entity\Category;
 use App\Entity\Event;
@@ -159,6 +160,22 @@ class JsonService
         if($topic) {
             $data['topic'] = self::getTopic($m->getTopic());
         }
+
+        return $data;
+    }
+
+    public static function getArticle(Article $a, $content = false)
+    {
+        $data = [
+            'id' => $a->getId(),
+            'title' => $a->getTitle(),
+            'author' => self::getUser($a->getAuthor()),
+            'created' => UtilityService::datetimeToString($a->getCreated()),
+            'edited' => UtilityService::datetimeToString($a->getEdited()),
+            'tags' => $a->getTags()
+        ];
+
+        if($content) $data['content'] = $a->getContent();
 
         return $data;
     }
