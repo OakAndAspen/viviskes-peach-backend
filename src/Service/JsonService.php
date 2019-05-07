@@ -49,9 +49,9 @@ class JsonService
             $data['npa'] = $u->getNpa();
             $data['city'] = $u->getCity();
             $newbie = $u->getNewbie();
-            $data['newbie'] = $newbie ? $newbie->getFirstName() . " " . $newbie->getLastName() : null;
+            $data['newbie'] = $newbie ? self::getUser($newbie) : null;
             $mentor = $u->getMentor();
-            $data['mentor'] = $mentor ? $mentor->getFirstName() . " " . $mentor->getLastName() : null;
+            $data['mentor'] = $mentor ? self::getUser($mentor) : null;
         }
 
         return $data;
