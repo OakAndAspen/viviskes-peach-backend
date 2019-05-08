@@ -9,6 +9,7 @@ use App\Entity\Event;
 use App\Entity\Loan;
 use App\Entity\Message;
 use App\Entity\Partner;
+use App\Entity\Tag;
 use App\Entity\Topic;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
@@ -172,11 +173,22 @@ class JsonService
             'author' => self::getUser($a->getAuthor()),
             'created' => UtilityService::datetimeToString($a->getCreated()),
             'edited' => UtilityService::datetimeToString($a->getEdited()),
-            'tags' => $a->getTags()
+            'tags' => []
         ];
+
+        foreach($a->getTags() as $tag) array_push($data['tags'], self::getTag($tag));
 
         if($content) $data['content'] = $a->getContent();
 
+        return $data;
+    }
+
+    public static function getTag(Tag $a)
+    {
+        $data = [
+            'id' => $a->getId(),
+            'label' => $a->getLabel(),
+        ];
         return $data;
     }
 }
