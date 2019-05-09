@@ -92,21 +92,17 @@ class JsonService
     {
         $data = [
             'id' => $b->getId(),
-            'name' => $b->getName()
+            'name' => $b->getName(),
+            'loans' => []
         ];
 
-        $loan = $em->getRepository(Loan::class)->findOneBy([
-            'book' => $b,
-            'end' => null
-        ]);
-
-        if ($loan) $data['loan'] = [
-            'user' => [
-                'id' => $loan->getUser()->getId(),
-                'fullName' => $loan->getUser()->getFirstName() . ' ' . $loan->getUser()->getLastName()
-            ],
-            'start' => $loan->getStart()->format('Y-m-d')
-        ];
+        foreach ($b->getLoans() as $loan) {
+            array_push($data['loans'], [
+                'user' => self::getUser($loan->getUser()),
+                'start' => UtilityService::datetimeToString($loan->getStart()),
+                'end' => $loan->getEnd() ? UtilityService::datetimeToString($loan->getEnd()) : null
+            ]);
+        }
 
         return $data;
     }

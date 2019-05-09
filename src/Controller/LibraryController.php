@@ -23,6 +23,10 @@ class LibraryController extends AbstractController implements TokenAuthenticated
      *
      * @param EntityManagerInterface $em
      * @return JR
+     *
+     * @api {get} /library Get all books
+     * @apiName BookIndex
+     * @apiGroup Library
      */
     public function index(EntityManagerInterface $em)
     {
@@ -38,6 +42,12 @@ class LibraryController extends AbstractController implements TokenAuthenticated
      * @param Request $req
      * @param EntityManagerInterface $em
      * @return JR
+     *
+     * @api {post} /library Create a new book
+     * @apiName BookCreate
+     * @apiGroup Library
+     *
+     * @apiParam {String} name Book's name
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -54,6 +64,10 @@ class LibraryController extends AbstractController implements TokenAuthenticated
      *
      * @param EntityManagerInterface $em
      * @return Response
+     *
+     * @api {get} /library/:id Get a book
+     * @apiName BookShow
+     * @apiGroup Library
      */
     public function show(EntityManagerInterface $em, $id)
     {
@@ -68,6 +82,12 @@ class LibraryController extends AbstractController implements TokenAuthenticated
      * @param Request $req
      * @param EntityManagerInterface $em
      * @return JR
+     *
+     * @api {patch} /library/:id Update a book
+     * @apiName BookUpdate
+     * @apiGroup Library
+     *
+     * @apiParam {String} name Book's name
      */
     public function update(Request $req, EntityManagerInterface $em, $id)
     {
@@ -85,6 +105,10 @@ class LibraryController extends AbstractController implements TokenAuthenticated
      *
      * @param EntityManagerInterface $em
      * @return JR
+     *
+     * @api {delete} /library/:id Delete a book
+     * @apiName BookDelete
+     * @apiGroup Library
      */
     public function delete(EntityManagerInterface $em, $id)
     {
@@ -103,11 +127,21 @@ class LibraryController extends AbstractController implements TokenAuthenticated
      * @param EntityManagerInterface $em
      * @return JR
      * @throws \Exception
+     *
+     * @api {post} /library/loan Create or update a book's loan
+     * @apiName BookLoan
+     * @apiGroup Library
+     *
+     * @apiDescription If the loan doesn't exist, it is created with the current date as a start date.
+     * If it exists, the current date is set as an end date.
+     *
+     * @apiParam {Number} bookId Book's id
+     * @apiParam {Number} userId User's id
      */
     public function loan(Request $req, EntityManagerInterface $em)
     {
-        $book = $em->getRepository(Book::class)->find($req->get("book"));
-        $user = $em->getRepository(User::class)->find($req->get("user"));
+        $book = $em->getRepository(Book::class)->find($req->get("bookId"));
+        $user = $em->getRepository(User::class)->find($req->get("userId"));
         if (!$book || !$user) return new JR(null, Response::HTTP_NOT_FOUND);
 
         $date = new \DateTime();
