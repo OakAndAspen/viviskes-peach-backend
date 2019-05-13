@@ -6,13 +6,12 @@ use App\Entity\Article;
 use App\Entity\Book;
 use App\Entity\Category;
 use App\Entity\Event;
-use App\Entity\Loan;
 use App\Entity\Message;
 use App\Entity\Partner;
 use App\Entity\Tag;
 use App\Entity\Topic;
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\UtilityService as US;
 
 class JsonService
 {
@@ -59,27 +58,29 @@ class JsonService
         return $data;
     }
 
-    public static function getEvent(Event $e, $participations = false)
+    public static function getEvent(Event $e, User $u, $participations = false)
     {
         $data = [
             'id' => $e->getId(),
             'title' => $e->getTitle(),
             'description' => $e->getDescription(),
-            'start' => $e->getStart()->format('Y-m-d'),
-            'end' => $e->getEnd()->format('Y-m-d'),
+            'start' => US::datetimeToString($e->getStart()),
+            'end' => US::datetimeToString($e->getEnd()),
             'location' => $e->getLocation(),
-            'privacy' => $e->getPrivacy()
+            'privacy' => $e->getPrivacy(),
+            'read' => true
         ];
+
+        foreach ($e->getTopics() as $t) {
+            if($t->getUnreadUsers()->contains($u)) $data['read'] = false;
+        }
 
         if ($participations) {
             $data['participations'] = [];
             foreach ($e->getParticipations() as $p) {
                 array_push($data['participations'], [
-                    'user' => [
-                        'id' => $p->getUser()->getId(),
-                        'fullName' => $p->getUser()->getFirstName() . ' ' . $p->getUser()->getLastName(),
-                    ],
-                    'day' => $p->getDay()->format('Y-m-d'),
+                    'user' => self::getUser($p->getUser()),
+                    'day' => US::datetimeToString($p->getDay()),
                     'status' => $p->getStatus()
                 ]);
             }
@@ -99,8 +100,8 @@ class JsonService
         foreach ($b->getLoans() as $loan) {
             array_push($data['loans'], [
                 'user' => self::getUser($loan->getUser()),
-                'start' => UtilityService::datetimeToString($loan->getStart()),
-                'end' => $loan->getEnd() ? UtilityService::datetimeToString($loan->getEnd()) : null
+                'start' => US::datetimeToString($loan->getStart()),
+                'end' => $loan->getEnd() ? US::datetimeToString($loan->getEnd()) : null
             ]);
         }
 
@@ -161,8 +162,8 @@ class JsonService
         $data = [
             'id' => $m->getId(),
             'author' => self::getUser($m->getAuthor()),
-            'created' => UtilityService::datetimeToString($m->getCreated()),
-            'edited' => UtilityService::datetimeToString($m->getEdited())
+            'created' => US::datetimeToString($m->getCreated()),
+            'edited' => US::datetimeToString($m->getEdited())
         ];
 
         if($content) {
@@ -178,8 +179,8 @@ class JsonService
             'id' => $a->getId(),
             'title' => $a->getTitle(),
             'author' => self::getUser($a->getAuthor()),
-            'created' => UtilityService::datetimeToString($a->getCreated()),
-            'edited' => UtilityService::datetimeToString($a->getEdited()),
+            'created' => US::datetimeToString($a->getCreated()),
+            'edited' => US::datetimeToString($a->getEdited()),
             'tags' => []
         ];
 
