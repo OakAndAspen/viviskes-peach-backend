@@ -120,4 +120,10 @@ class UtilityService
         $secretKey = $_ENV['JWT_SECRET'];
         return JWT::encode($data, $secretKey, 'HS512');
     }
+
+    public static function getBoolean($input) {
+        if($input === "true" || $input === "1" || $input === 1) return true;
+        if($input === "false" || $input === "0" || $input === 0) return false;
+        return null;
+    }
 }

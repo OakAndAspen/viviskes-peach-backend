@@ -8,14 +8,15 @@ use App\Entity\Message;
 use App\Entity\Topic;
 use App\Entity\User;
 use App\Service\JsonService as JS;
+use App\Service\UtilityService as US;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Exception;
-use DateTime;
 
 /**
  * @Route("/topic")
@@ -127,7 +128,7 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
         $eventId = $req->get('event');
         $catId = $req->get('category');
         $title = $req->get('title');
-        $pinned = $req->get('pinned');
+        $pinned = US::getBoolean($req->get('pinned'));
 
         $t = $em->getRepository(Topic::class)->find($id);
         if(!$t) return new JR(null, Response::HTTP_NOT_FOUND);
@@ -147,7 +148,7 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
         }
 
         if($title) $t->setTitle($title);
-        if($pinned) $t->setPinned($pinned);
+        if($pinned !== null) $t->setPinned($pinned);
 
         $em->persist($t);
         $em->flush();
