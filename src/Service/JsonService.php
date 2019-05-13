@@ -88,7 +88,7 @@ class JsonService
         return $data;
     }
 
-    public static function getBook(Book $b, EntityManagerInterface $em)
+    public static function getBook(Book $b)
     {
         $data = [
             'id' => $b->getId(),
@@ -107,55 +107,66 @@ class JsonService
         return $data;
     }
 
-    public static function getCategory(Category $c, $topics = false)
+    public static function getCategory(Category $c, User $u, $topics = false)
     {
         $data = [
             'id' => $c->getId(),
-            'label' => $c->getLabel()
+            'label' => $c->getLabel(),
+            'read' => true
         ];
+
+        foreach ($c->getTopics() as $t) {
+            if($t->getUnreadUsers()->contains($u)) $data['read'] = false;
+        }
 
         if ($topics) {
             $data['topics'] = [];
             foreach ($c->getTopics() as $t) {
-                array_push($data['topics'], self::getTopic($t));
+                array_push($data['topics'], self::getTopic($t, $u));
             }
         }
 
         return $data;
     }
 
-    public static function getTopic(Topic $t, $messages = false)
+    public static function getTopic(Topic $t, User $u, $messages = false)
     {
         $data = [
             'id' => $t->getId(),
             'title' => $t->getTitle(),
             'event' => $t->getEvent() ? self::getEvent($t->getEvent()) : null,
-            'category' => $t->getCategory() ? self::getCategory($t->getCategory()) : null,
-            'pinned' => $t->getPinned()
+            'category' => $t->getCategory() ? self::getCategory($t->getCategory(), $u) : null,
+            'pinned' => $t->getPinned(),
+            'read' => !$t->getUnreadUsers()->contains($u)
         ];
+
+        $lm = null;
+        foreach ($t->getMessages() as $m) {
+            if(!$lm || $m->getCreated() > $lm->getCreated()) $lm = $m;
+        }
+        if($lm) $data['lastMessage'] = self::getMessage($lm);
 
         if ($messages) {
             $data['messages'] = [];
             foreach ($t->getMessages() as $m) {
-                array_push($data['messages'], self::getMessage($m));
+                array_push($data['messages'], self::getMessage($m, true));
             }
         }
 
         return $data;
     }
 
-    public static function getMessage(Message $m, $topic = false)
+    public static function getMessage(Message $m, $content = false)
     {
         $data = [
             'id' => $m->getId(),
-            'content' => $m->getContent(),
             'author' => self::getUser($m->getAuthor()),
             'created' => UtilityService::datetimeToString($m->getCreated()),
             'edited' => UtilityService::datetimeToString($m->getEdited())
         ];
 
-        if($topic) {
-            $data['topic'] = self::getTopic($m->getTopic());
+        if($content) {
+            $data['content'] = $m->getContent();
         }
 
         return $data;

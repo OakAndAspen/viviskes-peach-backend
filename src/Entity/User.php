@@ -98,11 +98,17 @@ class User
      */
     private $participations;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Topic", inversedBy="unreadUsers")
+     */
+    private $unreadTopics;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->loans = new ArrayCollection();
         $this->participations = new ArrayCollection();
+        $this->unreadTopics = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -360,6 +366,32 @@ class User
             if ($participation->getUser() === $this) {
                 $participation->setUser(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Topic[]
+     */
+    public function getUnreadTopics(): Collection
+    {
+        return $this->unreadTopics;
+    }
+
+    public function addUnreadTopic(Topic $unreadTopic): self
+    {
+        if (!$this->unreadTopics->contains($unreadTopic)) {
+            $this->unreadTopics[] = $unreadTopic;
+        }
+
+        return $this;
+    }
+
+    public function removeUnreadTopic(Topic $unreadTopic): self
+    {
+        if ($this->unreadTopics->contains($unreadTopic)) {
+            $this->unreadTopics->removeElement($unreadTopic);
         }
 
         return $this;

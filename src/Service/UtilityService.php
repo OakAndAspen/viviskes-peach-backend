@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\User;
 use Firebase\JWT\JWT;
 
 class UtilityService
@@ -105,8 +106,7 @@ class UtilityService
         file_put_contents($fileUrl, $newContent);
     }
 
-
-    public static function generateJWT($user)
+    public static function generateJWT(User $user)
     {
         $jti = base64_encode(password_hash(rand(0, 999999), PASSWORD_BCRYPT));
         $data = [

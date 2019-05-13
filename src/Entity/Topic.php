@@ -43,9 +43,15 @@ class Topic
      */
     private $title;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\User", mappedBy="unreadTopics")
+     */
+    private $unreadUsers;
+
     public function __construct()
     {
         $this->messages = new ArrayCollection();
+        $this->unreadUsers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -128,6 +134,34 @@ class Topic
     public function setTitle(string $title): self
     {
         $this->title = $title;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|User[]
+     */
+    public function getUnreadUsers(): Collection
+    {
+        return $this->unreadUsers;
+    }
+
+    public function addUnreadUser(User $unreadUser): self
+    {
+        if (!$this->unreadUsers->contains($unreadUser)) {
+            $this->unreadUsers[] = $unreadUser;
+            $unreadUser->addUnreadTopic($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUnreadUser(User $unreadUser): self
+    {
+        if ($this->unreadUsers->contains($unreadUser)) {
+            $this->unreadUsers->removeElement($unreadUser);
+            $unreadUser->removeUnreadTopic($this);
+        }
 
         return $this;
     }

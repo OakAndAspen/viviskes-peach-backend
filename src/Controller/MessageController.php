@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use DateTime;
 
 /**
  * @Route("/message")
@@ -42,25 +43,30 @@ class MessageController extends AbstractController implements TokenAuthenticated
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
-        $authorId = $req->get('author');
         $topicId = $req->get('topic');
         $content = $req->get('content');
-        if(!$authorId || !$topicId || !$content) return new JR(null, Response::HTTP_BAD_REQUEST);
+        if(!$topicId || !$content) return new JR(null, Response::HTTP_BAD_REQUEST);
 
-        $author = $em->getRepository(User::class)->find($authorId);
+        $user = $req->get("user");
         $topic = $em->getRepository(Topic::class)->find($topicId);
-        if(!$author || !$topic) return new JR(null, Response::HTTP_NOT_FOUND);
+        if(!$topic) return new JR(null, Response::HTTP_NOT_FOUND);
 
         $m = new Message();
-        $m->setAuthor($author);
+        $m->setAuthor($user);
         $m->setTopic($topic);
         $m->setContent($content);
         $m->setCreated(new \DateTime());
         $m->setEdited(new \DateTime());
-
         $em->persist($m);
         $em->flush();
-        return new JR(JS::getMessage($m), Response::HTTP_CREATED);
+
+        foreach ($em->getRepository(User::class)->findAll() as $u) {
+            if($u !== $user) $topic->addUnreadUser($u);
+        }
+        $em->persist($topic);
+        $em->flush();
+
+        return new JR(JS::getMessage($m, true), Response::HTTP_CREATED);
     }
 
     /**
@@ -73,7 +79,7 @@ class MessageController extends AbstractController implements TokenAuthenticated
     {
         $m = $em->getRepository(Message::class)->find($id);
         if(!$m) return new JR(null, Response::HTTP_NOT_FOUND);
-        return new JR(JS::getMessage($m), Response::HTTP_OK);
+        return new JR(JS::getMessage($m, true), Response::HTTP_OK);
     }
 
     /**
@@ -90,11 +96,11 @@ class MessageController extends AbstractController implements TokenAuthenticated
 
         $content = $req->get('content');
         if($content) $m->setContent($content);
-        $m->setEdited(new \DateTime());
+        $m->setEdited(new DateTime());
 
         $em->persist($m);
         $em->flush();
-        return new JR(JS::getMessage($m), Response::HTTP_OK);
+        return new JR(JS::getMessage($m, true), Response::HTTP_OK);
     }
 
     /**

@@ -4,7 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Category;
 use App\Entity\Event;
+use App\Entity\Message;
 use App\Entity\Topic;
+use App\Entity\User;
 use App\Service\JsonService as JS;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,6 +14,8 @@ use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Exception;
+use DateTime;
 
 /**
  * @Route("/topic")
@@ -21,14 +25,15 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
     /**
      * @Route("", name="topic-index", methods={"GET"})
      *
+     * @param Request $req
      * @param EntityManagerInterface $em
      * @return JR
      */
-    public function index(EntityManagerInterface $em)
+    public function index(Request $req, EntityManagerInterface $em)
     {
         $topic = $em->getRepository(Topic::class)->findAll();
         $data = [];
-        foreach ($topic as $t) array_push($data, JS::getTopic($t));
+        foreach ($topic as $t) array_push($data, JS::getTopic($t, $req->get("user")));
         return new JR($data, Response::HTTP_OK);
     }
 
@@ -38,17 +43,24 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
      * @param Request $req
      * @param EntityManagerInterface $em
      * @return JR
+     * @throws Exception
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
         $eventId = $req->get('event');
         $catId = $req->get('category');
         $title = $req->get('title');
-        $pinned = $req->get('pinned');
+        $message = $req->get('message');
 
-        if(!$eventId && !$catId) return new JR(null, Response::HTTP_BAD_REQUEST);
+        if((!$eventId && !$catId) || !$title || !$message) {
+            return new JR(null, Response::HTTP_BAD_REQUEST);
+        }
 
+        // Create the topic
         $t = new Topic();
+        $t->setTitle($title);
+        $t->setPinned(false);
+
         if($eventId) {
             $event = $em->getRepository(Event::class)->find($eventId);
             if(!$event) return new JR(null, Response::HTTP_NOT_FOUND);
@@ -59,25 +71,47 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
             $t->setCategory($category);
         }
 
-        $t->setTitle($title);
-        $t->setPinned($pinned);
+        // Notify the users
+        foreach ($em->getRepository(User::class)->findAll() as $u) {
+            if($u !== $req->get("user")) {
+                $t->addUnreadUser($u);
+            }
+        }
 
         $em->persist($t);
         $em->flush();
-        return new JR(JS::getTopic($t), Response::HTTP_CREATED);
+
+        // Create the message
+        $m = new Message();
+        $m->setTopic($t);
+        $m->setContent($message);
+        $m->setAuthor($req->get("user"));
+        $m->setCreated(new DateTime());
+        $m->setEdited(new DateTime());
+        $em->persist($m);
+        $em->flush();
+
+        return new JR(JS::getTopic($t, $req->get("user")), Response::HTTP_CREATED);
     }
 
     /**
      * @Route("/{id}", name="topic-show", methods={"GET"})
      *
+     * @param Request $req
      * @param EntityManagerInterface $em
-     * @return Response
+     * @param $id
+     * @return JR
      */
-    public function show(EntityManagerInterface $em, $id)
+    public function show(Request $req, EntityManagerInterface $em, $id)
     {
         $t = $em->getRepository(Topic::class)->find($id);
         if(!$t) return new JR(null, Response::HTTP_NOT_FOUND);
-        return new JR(JS::getTopic($t, true), Response::HTTP_OK);
+
+        $t->removeUnreadUser($req->get("user"));
+        $em->persist($t);
+        $em->flush();
+
+        return new JR(JS::getTopic($t, $req->get("user"), true), Response::HTTP_OK);
     }
 
     /**
@@ -85,6 +119,7 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
      *
      * @param Request $req
      * @param EntityManagerInterface $em
+     * @param $id
      * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $id)
@@ -116,13 +151,14 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
 
         $em->persist($t);
         $em->flush();
-        return new JR(JS::getTopic($t, true), Response::HTTP_OK);
+        return new JR(JS::getTopic($t, $req->get("user"), true), Response::HTTP_OK);
     }
 
     /**
      * @Route("/{id}", name="topic-delete", methods={"DELETE"})
      *
      * @param EntityManagerInterface $em
+     * @param $id
      * @return JR
      */
     public function delete(EntityManagerInterface $em, $id)

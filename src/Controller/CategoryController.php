@@ -20,14 +20,15 @@ class CategoryController extends AbstractController implements TokenAuthenticate
     /**
      * @Route("", name="category-index", methods={"GET"})
      *
+     * @param Request $req
      * @param EntityManagerInterface $em
      * @return JR
      */
-    public function index(EntityManagerInterface $em)
+    public function index(Request $req, EntityManagerInterface $em)
     {
         $category = $em->getRepository(Category::class)->findAll();
         $data = [];
-        foreach ($category as $c) array_push($data, JS::getCategory($c));
+        foreach ($category as $c) array_push($data, JS::getCategory($c, $req->get("user")));
         return new JR($data, Response::HTTP_OK);
     }
 
@@ -45,20 +46,22 @@ class CategoryController extends AbstractController implements TokenAuthenticate
 
         $em->persist($c);
         $em->flush();
-        return new JR(JS::getCategory($c), Response::HTTP_CREATED);
+        return new JR(JS::getCategory($c, $req->get("user")), Response::HTTP_CREATED);
     }
 
     /**
      * @Route("/{id}", name="category-show", methods={"GET"})
      *
+     * @param Request $req
      * @param EntityManagerInterface $em
-     * @return Response
+     * @param $id
+     * @return JR
      */
-    public function show(EntityManagerInterface $em, $id)
+    public function show(Request $req, EntityManagerInterface $em, $id)
     {
         $c = $em->getRepository(Category::class)->find($id);
-        if(!$c) return new JR(null, Response::HTTP_NOT_FOUND);
-        return new JR(JS::getCategory($c, true), Response::HTTP_OK);
+        if (!$c) return new JR(null, Response::HTTP_NOT_FOUND);
+        return new JR(JS::getCategory($c, $req->get("user"), true), Response::HTTP_OK);
     }
 
     /**
@@ -71,12 +74,12 @@ class CategoryController extends AbstractController implements TokenAuthenticate
     public function update(Request $req, EntityManagerInterface $em, $id)
     {
         $c = $em->getRepository(Category::class)->find($id);
-        if(!$c) return new JR(null, Response::HTTP_NOT_FOUND);
-        if($req->get("label")) $c->setLabel($req->get("label"));
+        if (!$c) return new JR(null, Response::HTTP_NOT_FOUND);
+        if ($req->get("label")) $c->setLabel($req->get("label"));
 
         $em->persist($c);
         $em->flush();
-        return new JR(JS::getCategory($c, true), Response::HTTP_OK);
+        return new JR(JS::getCategory($c, $req->get("user"), true), Response::HTTP_OK);
     }
 
     /**
@@ -88,7 +91,7 @@ class CategoryController extends AbstractController implements TokenAuthenticate
     public function delete(EntityManagerInterface $em, $id)
     {
         $c = $em->getRepository(Category::class)->find($id);
-        if(!$c) return new JR(null, Response::HTTP_NOT_FOUND);
+        if (!$c) return new JR(null, Response::HTTP_NOT_FOUND);
 
         $em->remove($c);
         $em->flush();
