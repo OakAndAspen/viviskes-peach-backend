@@ -58,7 +58,7 @@ class JsonService
         return $data;
     }
 
-    public static function getEvent(Event $e, User $u, $participations = false)
+    public static function getEvent(Event $e, User $u, $participations = false, $topics = false)
     {
         $data = [
             'id' => $e->getId(),
@@ -72,7 +72,7 @@ class JsonService
         ];
 
         foreach ($e->getTopics() as $t) {
-            if($t->getUnreadUsers()->contains($u)) $data['read'] = false;
+            if ($t->getUnreadUsers()->contains($u)) $data['read'] = false;
         }
 
         if ($participations) {
@@ -83,6 +83,13 @@ class JsonService
                     'day' => US::datetimeToString($p->getDay()),
                     'status' => $p->getStatus()
                 ]);
+            }
+        }
+
+        if($topics) {
+            $data['topics'] = [];
+            foreach ($e->getTopics() as $t) {
+                array_push($data['topics'], self::getTopic($t, $u));
             }
         }
 
@@ -117,7 +124,7 @@ class JsonService
         ];
 
         foreach ($c->getTopics() as $t) {
-            if($t->getUnreadUsers()->contains($u)) $data['read'] = false;
+            if ($t->getUnreadUsers()->contains($u)) $data['read'] = false;
         }
 
         if ($topics) {
@@ -135,7 +142,7 @@ class JsonService
         $data = [
             'id' => $t->getId(),
             'title' => $t->getTitle(),
-            'event' => $t->getEvent() ? self::getEvent($t->getEvent()) : null,
+            'event' => $t->getEvent() ? self::getEvent($t->getEvent(), $u) : null,
             'category' => $t->getCategory() ? self::getCategory($t->getCategory(), $u) : null,
             'pinned' => $t->getPinned(),
             'read' => !$t->getUnreadUsers()->contains($u)
@@ -143,9 +150,9 @@ class JsonService
 
         $lm = null;
         foreach ($t->getMessages() as $m) {
-            if(!$lm || $m->getCreated() > $lm->getCreated()) $lm = $m;
+            if (!$lm || $m->getCreated() > $lm->getCreated()) $lm = $m;
         }
-        if($lm) $data['lastMessage'] = self::getMessage($lm);
+        if ($lm) $data['lastMessage'] = self::getMessage($lm);
 
         if ($messages) {
             $data['messages'] = [];
@@ -166,7 +173,7 @@ class JsonService
             'edited' => US::datetimeToString($m->getEdited())
         ];
 
-        if($content) {
+        if ($content) {
             $data['content'] = $m->getContent();
         }
 
@@ -184,9 +191,9 @@ class JsonService
             'tags' => []
         ];
 
-        foreach($a->getTags() as $tag) array_push($data['tags'], self::getTag($tag));
+        foreach ($a->getTags() as $tag) array_push($data['tags'], self::getTag($tag));
 
-        if($content) $data['content'] = $a->getContent();
+        if ($content) $data['content'] = $a->getContent();
 
         return $data;
     }
