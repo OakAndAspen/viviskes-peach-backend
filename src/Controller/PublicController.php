@@ -13,17 +13,6 @@ use Symfony\Component\Routing\Annotation\Route;
 class PublicController extends AbstractController
 {
     /**
-     * @Route("/public", name="public")
-     */
-    public function index()
-    {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/PublicController.php',
-        ]);
-    }
-
-    /**
      * @Route("/login", methods="POST")
      *
      * @param Request $req
@@ -51,5 +40,26 @@ class PublicController extends AbstractController
         $em->flush();
 
         return new JsonResponse(['authKey' => $jwt]);
+    }
+
+    /**
+     * @Route("/public/members", methods="GET")
+     *
+     * @param Request $req
+     * @param EntityManagerInterface $em
+     * @return JsonResponse
+     */
+    public function getMembers(Request $req, EntityManagerInterface $em) {
+        $data = [];
+        foreach($em->getRepository(User::class)->findAll() as $u) {
+            if($u->getCelticName()) {
+                array_push($data, [
+                    "id" => $u->getId(),
+                    "celticName" => $u->getCelticName(),
+                    "hasPhoto" => file_exists("uploads\\users\\".$u->getId().".jpg")
+                ]);
+            }
+        }
+        return new JsonResponse($data);
     }
 }
