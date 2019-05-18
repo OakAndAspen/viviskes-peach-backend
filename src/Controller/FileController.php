@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Service\UtilityService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,10 +23,11 @@ class FileController extends AbstractController implements TokenAuthenticatedCon
      */
     public function upload(Request $req, EntityManagerInterface $em)
     {
-        $name = $req->get("name");
+        $name = /*$req->get("name") ||*/
+            "coucou2.jpg";
         $file = $req->files->get("file");
         $url = "uploads\\" . $name;
         move_uploaded_file($file, $url);
-        return new JsonResponse(["url" => $url]);
+        return new JsonResponse(["url" => "/uploads/" . $name . "?timestamp=" . mktime()]);
     }
 }

@@ -60,8 +60,9 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
     /**
      * @Route("/profile", name="user-show-profile", methods={"GET"})
      *
+     * @param Request $req
      * @param EntityManagerInterface $em
-     * @return Response
+     * @return JR
      */
     public function showProfile(Request $req, EntityManagerInterface $em)
     {
@@ -74,7 +75,8 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
      * @Route("/{id}", name="user-show", methods={"GET"})
      *
      * @param EntityManagerInterface $em
-     * @return Response
+     * @param $id
+     * @return JR
      */
     public function show(EntityManagerInterface $em, $id)
     {
@@ -131,10 +133,26 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
     }
 
     /**
+     * @Route("/image", name="user-update-image", methods={"POST"})
+     *
+     * @param Request $req
+     * @return JR
+     */
+    public function updateImage(Request $req)
+    {
+        $user = $req->get("user");
+        $file = $req->files->get("file");
+        $url = "uploads\\users\\" . $user->getId() . ".jpg";
+        move_uploaded_file($file, $url);
+        return new JR(["url" => "/uploads/users/".$user->getId().".jpg?timestamp=" . mktime()]);
+    }
+
+    /**
      * @Route("/{id}", name="user-update", methods={"PATCH"})
      *
      * @param Request $req
      * @param EntityManagerInterface $em
+     * @param $id
      * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $id)
@@ -183,6 +201,7 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
      * @Route("/{id}", name="user-delete", methods={"DELETE"})
      *
      * @param EntityManagerInterface $em
+     * @param $id
      * @return JR
      */
     public function delete(EntityManagerInterface $em, $id)
