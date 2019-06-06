@@ -5,7 +5,9 @@ namespace App\Service;
 use App\Entity\Article;
 use App\Entity\Book;
 use App\Entity\Category;
+use App\Entity\Document;
 use App\Entity\Event;
+use App\Entity\Folder;
 use App\Entity\Message;
 use App\Entity\Partner;
 use App\Entity\Tag;
@@ -204,6 +206,37 @@ class JsonService
             'id' => $a->getId(),
             'label' => $a->getLabel(),
         ];
+        return $data;
+    }
+
+    public static function getFolder(Folder $f, $children = false)
+    {
+        $data = [
+            'id' => $f->getId(),
+            'name' => $f->getName(),
+            'created' => US::datetimeToString($f->getCreated()),
+            'parent' => $f->getParent() ? $f->getParent()->getId() : null
+        ];
+
+        if($children) {
+            $data['folders'] = [];
+            $data['documents'] = [];
+            foreach ($f->getChildren() as $child) array_push($data['folders'], self::getFolder($child));
+            foreach ($f->getDocuments() as $d) array_push($data['documents'], self::getDocument($d));
+        }
+
+        return $data;
+    }
+
+    public static function getDocument(Document $d)
+    {
+        $data = [
+            'id' => $d->getId(),
+            'name' => $d->getName(),
+            'created' => US::datetimeToString($d->getCreated()),
+            'folder' => $d->getFolder() ? $d->getFolder()->getId() : null
+        ];
+
         return $data;
     }
 }
