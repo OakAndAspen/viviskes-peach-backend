@@ -7,9 +7,11 @@ use App\Entity\Folder;
 use App\Service\JsonService as JS;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 use Exception;
@@ -44,11 +46,13 @@ class DocumentController extends AbstractController implements TokenAuthenticate
     public function create(Request $req, EntityManagerInterface $em)
     {
         $name = $req->get('name');
+        $file = $req->files->get('file');
         $folderId = $req->get('folder');
-        if (!$name) return new JR(null, Response::HTTP_BAD_REQUEST);
+        if (!$name || !$file) return new JR(null, Response::HTTP_BAD_REQUEST);
 
         $d = new Document();
-        $d->setName($name);
+        $d->setName(pathinfo($name, PATHINFO_FILENAME));
+        $d->setExtension(pathinfo($name, PATHINFO_EXTENSION));
         $d->setCreated(new DateTime());
 
         if ($folderId) {
@@ -59,7 +63,29 @@ class DocumentController extends AbstractController implements TokenAuthenticate
 
         $em->persist($d);
         $em->flush();
+
+        $url = "uploads\\media\\" . $d->getId() . "." . $d->getExtension();
+        move_uploaded_file($file, $url);
+
         return new JR(JS::getDocument($d), Response::HTTP_CREATED);
+    }
+
+    /**
+     * @Route("/download/{id}", name="document-download", methods={"GET"})
+     *
+     * @param EntityManagerInterface $em
+     * @param $id
+     * @return BinaryFileResponse|JR
+     */
+    public function download(EntityManagerInterface $em, $id)
+    {
+        $d = $em->getRepository(Document::class)->find($id);
+        if (!$d) return new JR(null, Response::HTTP_NOT_FOUND);
+
+        $source = "uploads/media/" . $d->getId() . "." . $d->getExtension();
+        $destination = "downloads/" . $d->getName() . "." . $d->getExtension();
+        copy($source, $destination);
+        return new JR(["url" => $destination]);
     }
 
     /**
@@ -92,7 +118,7 @@ class DocumentController extends AbstractController implements TokenAuthenticate
         $name = $req->get('name');
         $folderId = $req->get('folder');
 
-        if($name) $d->setName($name);
+        if ($name) $d->setName($name);
         if ($folderId) {
             $folder = $em->getRepository(Folder::class)->find($folderId);
             if (!$folder) return new JR(null, Response::HTTP_NOT_FOUND);

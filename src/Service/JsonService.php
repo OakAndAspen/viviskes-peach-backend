@@ -215,7 +215,7 @@ class JsonService
             'id' => $f->getId(),
             'name' => $f->getName(),
             'created' => US::datetimeToString($f->getCreated()),
-            'parent' => $f->getParent() ? $f->getParent()->getId() : null
+            'parent' => $f->getParent() ? self::getFolder($f->getParent()) : null
         ];
 
         if($children) {
@@ -233,6 +233,7 @@ class JsonService
         $data = [
             'id' => $d->getId(),
             'name' => $d->getName(),
+            'extension' => $d->getExtension(),
             'created' => US::datetimeToString($d->getCreated()),
             'folder' => $d->getFolder() ? $d->getFolder()->getId() : null
         ];

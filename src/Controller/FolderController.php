@@ -6,12 +6,16 @@ use App\Entity\Folder;
 use App\Service\JsonService as JS;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 use Exception;
+use ZipArchive;
 
 /**
  * @Route("/folders")
@@ -62,6 +66,39 @@ class FolderController extends AbstractController implements TokenAuthenticatedC
     }
 
     /**
+     * @Route("/download/{id}", name="folder-download", methods={"GET"})
+     *
+     * @param EntityManagerInterface $em
+     * @param $id
+     * @return JR|Response
+     */
+    public function download(EntityManagerInterface $em, $id)
+    {
+        $f = $em->getRepository(Folder::class)->find($id);
+        if (!$f) return new JR(null, Response::HTTP_NOT_FOUND);
+
+        $zip = new ZipArchive();
+        $zipName = $f->getName() . '.zip';
+        if ($zip->open($zipName, ZipArchive::CREATE) === TRUE) {
+            foreach ($f->getDocuments() as $d) {
+                $path = 'uploads/media/' . $d->getId() . '.' . $d->getExtension();
+                $renameTo = $d->getName() . '.' . $d->getExtension();
+                $zip->addFile($path, $renameTo);
+            }
+            $zip->close();
+        }
+
+        $response = new Response(file_get_contents($zipName));
+        $response->headers->set('Content-Type', 'application/zip');
+        $response->headers->set('Content-Disposition', 'attachment;filename="' . $zipName . '"');
+        $response->headers->set('Content-length', filesize($zipName));
+
+        unlink($zipName);
+
+        return $response;
+    }
+
+    /**
      * @Route("/{id}", name="folder-show", methods={"GET"})
      *
      * @param EntityManagerInterface $em
@@ -91,7 +128,7 @@ class FolderController extends AbstractController implements TokenAuthenticatedC
         $name = $req->get('name');
         $parentId = $req->get('parent');
 
-        if($name) $f->setName($name);
+        if ($name) $f->setName($name);
         if ($parentId) {
             $parent = $em->getRepository(Folder::class)->find($parentId);
             if (!$parent) return new JR(null, Response::HTTP_NOT_FOUND);
@@ -119,4 +156,6 @@ class FolderController extends AbstractController implements TokenAuthenticatedC
         $em->flush();
         return new JR(null, Response::HTTP_NO_CONTENT);
     }
+
+
 }

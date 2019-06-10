@@ -31,6 +31,11 @@ class Document
      */
     private $folder;
 
+    /**
+     * @ORM\Column(type="string", length=10)
+     */
+    private $extension;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -68,6 +73,18 @@ class Document
     public function setFolder(?Folder $folder): self
     {
         $this->folder = $folder;
+
+        return $this;
+    }
+
+    public function getExtension(): ?string
+    {
+        return $this->extension;
+    }
+
+    public function setExtension(string $extension): self
+    {
+        $this->extension = $extension;
 
         return $this;
     }
