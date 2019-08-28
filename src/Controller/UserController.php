@@ -26,7 +26,7 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
     {
         $users = $em->getRepository(User::class)->findAll();
         $data = [];
-        foreach ($users as $p) array_push($data, JS::getUser($p));
+        foreach ($users as $p) array_push($data, JS::getUser($p, true));
         return new JR($data, Response::HTTP_OK);
     }
 
@@ -105,7 +105,8 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
         if ($req->get("address")) $u->setAddress($req->get("address"));
         if ($req->get("npa")) $u->setNpa($req->get("npa"));
         if ($req->get("city")) $u->setCity($req->get("city"));
-        if ($req->get("isActive")) $u->setIsActive($req->get("isActive") || true);
+        if ($req->get("isActive") !== null) $u->setIsActive($req->get("isActive") === "true");
+        if ($req->get("isFighting") !== null) $u->setIsFighting($req->get("isFighting") === "true");
 
         if ($req->get("mentor")) {
             $mentor = $em->getRepository(User::class)->find($req->get("mentor"));
@@ -169,8 +170,9 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
         if ($req->get("address")) $u->setAddress($req->get("address"));
         if ($req->get("npa")) $u->setNpa($req->get("npa"));
         if ($req->get("city")) $u->setCity($req->get("city"));
-        if ($req->get("isAdmin")) $u->setIsAdmin($req->get("isAdmin") || false);
-        if ($req->get("isActive")) $u->setIsActive($req->get("isActive") || true);
+        if ($req->get("isAdmin") !== null) $u->setIsAdmin($req->get("isAdmin") === "true");
+        if ($req->get("isActive") !== null) $u->setIsActive($req->get("isActive") === "true");
+        if ($req->get("isFighting") !== null) $u->setIsFighting($req->get("isFighting") === "true");
 
         if ($req->get("mentor")) {
             $mentor = $em->getRepository(User::class)->find($req->get("mentor"));

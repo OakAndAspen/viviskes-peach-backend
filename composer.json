@@ -4,9 +4,9 @@
     "require": {
         "php": "^7.1.3",
         "ext-ctype": "*",
-        "ext-zip": "*",
-        "ext-iconv": "*",
         "ext-fileinfo": "*",
+        "ext-iconv": "*",
+        "ext-zip": "*",
         "firebase/php-jwt": "^5.0",
         "nelmio/cors-bundle": "^1.5",
         "symfony/console": "4.2.*",
@@ -14,6 +14,7 @@
         "symfony/flex": "^1.1",
         "symfony/framework-bundle": "4.2.*",
         "symfony/orm-pack": "^1.0",
+        "symfony/serializer": "4.2.*",
         "symfony/yaml": "4.2.*"
     },
     "config": {

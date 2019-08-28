@@ -47,6 +47,7 @@ class JsonService
             $data['email'] = $u->getEmail();
             $data['phone'] = $u->getPhone();
             $data['isActive'] = $u->getIsActive();
+            $data['isFighting'] = $u->getIsFighting();
             $data['isAdmin'] = $u->getIsAdmin();
             $data['address'] = $u->getAddress();
             $data['npa'] = $u->getNpa();

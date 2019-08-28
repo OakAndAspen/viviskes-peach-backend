@@ -103,6 +103,11 @@ class User
      */
     private $unreadTopics;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isFighting;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -393,6 +398,18 @@ class User
         if ($this->unreadTopics->contains($unreadTopic)) {
             $this->unreadTopics->removeElement($unreadTopic);
         }
+
+        return $this;
+    }
+
+    public function getIsFighting(): ?bool
+    {
+        return $this->isFighting;
+    }
+
+    public function setIsFighting(bool $isFighting): self
+    {
+        $this->isFighting = $isFighting;
 
         return $this;
     }
