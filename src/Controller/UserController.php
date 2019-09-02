@@ -49,8 +49,9 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
         $u->setAddress($req->get("address"));
         $u->setNpa($req->get("npa"));
         $u->setCity($req->get("city"));
-        $u->setIsAdmin($req->get("isAdmin") || false);
-        $u->setIsActive($req->get("isActive") || true);
+        $u->setIsAdmin(false);
+        $u->setIsActive(false);
+        $u->setIsFighting(false);
 
         $em->persist($u);
         $em->flush();
