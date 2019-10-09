@@ -3,6 +3,8 @@
 namespace App\Service;
 
 use App\Entity\User;
+use DateTime;
+use Exception;
 use Firebase\JWT\JWT;
 
 class UtilityService
@@ -121,9 +123,46 @@ class UtilityService
         return JWT::encode($data, $secretKey, 'HS512');
     }
 
-    public static function getBoolean($input) {
-        if($input === "true" || $input === "1" || $input === 1) return true;
-        if($input === "false" || $input === "0" || $input === 0) return false;
+    public static function getBoolean($input)
+    {
+        if ($input === "true" || $input === "1" || $input === 1) return true;
+        if ($input === "false" || $input === "0" || $input === 0) return false;
         return null;
+    }
+
+    /**
+     * Create a DateTime object from a string and returns it.
+     * Returns null if string is empty and false if it's incorrect.
+     * @param $string
+     * @return bool|DateTime|null
+     */
+    public static function createDate($string)
+    {
+        if (!$string) return null;
+        try {
+            $date = new DateTime($string);
+        } catch (Exception $e) {
+            return false;
+        }
+        return $date;
+    }
+
+    /**
+     * Create a DateTime object from a string that has only the time part and returns it.
+     * Returns null if string is empty and false if it's incorrect.
+     * @param $string
+     * @return bool|DateTime|null
+     */
+    public static function createTime($string)
+    {
+        if (!$string) return null;
+        try {
+            $now = new DateTime();
+            $dateString = $now->format("Y-m-d");
+            $date = new DateTime($dateString . " " . $string);
+        } catch (Exception $e) {
+            return false;
+        }
+        return $date;
     }
 }
