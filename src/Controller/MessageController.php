@@ -5,14 +5,15 @@ namespace App\Controller;
 use App\Entity\Message;
 use App\Entity\Topic;
 use App\Entity\User;
-use App\Service\JsonService as JS;
+use App\Service\FormService;
+use App\Service\NormalizerService as NS;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use DateTime;
 
 /**
  * @Route("/message")
@@ -28,9 +29,9 @@ class MessageController extends AbstractController implements TokenAuthenticated
     public function index(EntityManagerInterface $em)
     {
         $messages = $em->getRepository(Message::class)->findAll();
-        $data = [];
-        foreach ($messages as $m) array_push($data, JS::getMessage($m));
-        return new JR($data, Response::HTTP_OK);
+        $array = [];
+        foreach ($messages as $m) array_push($array, NS::getMessage($m));
+        return new JR($array);
     }
 
     /**
@@ -39,83 +40,82 @@ class MessageController extends AbstractController implements TokenAuthenticated
      * @param Request $req
      * @param EntityManagerInterface $em
      * @return JR
-     * @throws \Exception
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
-        $topicId = $req->get('topic');
-        $content = $req->get('content');
-        if(!$topicId || !$content) return new JR(null, Response::HTTP_BAD_REQUEST);
+        $authUser = $req->get("authUser");
+        $data = $req->get("message");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $user = $req->get("user");
-        $topic = $em->getRepository(Topic::class)->find($topicId);
-        if(!$topic) return new JR(null, Response::HTTP_NOT_FOUND);
+        $message = FormService::upsertMessage($em, $data);
+        if (is_string($message)) return new JR($message, Response::HTTP_BAD_REQUEST);
 
-        $m = new Message();
-        $m->setAuthor($user);
-        $m->setTopic($topic);
-        $m->setContent($content);
-        $m->setCreated(new \DateTime());
-        $m->setEdited(new \DateTime());
-        $em->persist($m);
-        $em->flush();
-
+        $topic = $message->getTopic();
         foreach ($em->getRepository(User::class)->findAll() as $u) {
-            if($u !== $user) $topic->addUnreadUser($u);
+            if ($u !== $authUser) $topic->addUnreadUser($u);
         }
         $em->persist($topic);
         $em->flush();
 
-        return new JR(JS::getMessage($m, true), Response::HTTP_CREATED);
+        return new JR(NS::getMessage($message, true), Response::HTTP_CREATED);
     }
 
     /**
-     * @Route("/{id}", name="message-show", methods={"GET"})
+     * @Route("/{messageId}", name="message-show", methods={"GET"})
      *
      * @param EntityManagerInterface $em
+     * @param $messageId
      * @return Response
      */
-    public function show(EntityManagerInterface $em, $id)
+    public function show(EntityManagerInterface $em, $messageId)
     {
-        $m = $em->getRepository(Message::class)->find($id);
-        if(!$m) return new JR(null, Response::HTTP_NOT_FOUND);
-        return new JR(JS::getMessage($m, true), Response::HTTP_OK);
+        $m = $em->getRepository(Message::class)->find($messageId);
+        if (!$m) return new JR("Message not found", Response::HTTP_NOT_FOUND);
+        return new JR(NS::getMessage($m, true));
     }
 
     /**
      * @param Request $req
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $messageId
      * @return JR
-     * @throws \Exception
      */
-    public function update(Request $req, EntityManagerInterface $em, $id)
+    public function update(Request $req, EntityManagerInterface $em, $messageId)
     {
-        $m = $em->getRepository(Message::class)->find($id);
-        if(!$m) return new JR(null, Response::HTTP_NOT_FOUND);
+        $authUser = $req->get("authUser");
+        $data = $req->get("message");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $content = $req->get('content');
-        if($content) $m->setContent($content);
-        $m->setEdited(new DateTime());
+        $m = $em->getRepository(Message::class)->find($messageId);
+        if (!$m) return new JR("Message not found", Response::HTTP_NOT_FOUND);
 
-        $em->persist($m);
+        $message = FormService::upsertMessage($em, $data, $m);
+        if (is_string($message)) return new JR($message, Response::HTTP_BAD_REQUEST);
+
+        $topic = $message->getTopic();
+        foreach ($em->getRepository(User::class)->findAll() as $u) {
+            if ($u !== $authUser) $topic->addUnreadUser($u);
+        }
+        $em->persist($topic);
         $em->flush();
-        return new JR(JS::getMessage($m, true), Response::HTTP_OK);
+
+        return new JR(NS::getMessage($m, true));
     }
 
     /**
-     * @Route("/{id}", name="message-delete", methods={"DELETE"})
+     * @Route("/{messageId}", name="message-delete", methods={"DELETE"})
      *
      * @param EntityManagerInterface $em
+     * @param $messageId
      * @return JR
      */
-    public function delete(EntityManagerInterface $em, $id)
+    public function delete(EntityManagerInterface $em, $messageId)
     {
-        $p = $em->getRepository(Message::class)->find($id);
-        if(!$p) return new JR(null, Response::HTTP_NOT_FOUND);
+        $p = $em->getRepository(Message::class)->find($messageId);
+        if (!$p) return new JR("Message not found", Response::HTTP_NOT_FOUND);
 
         $em->remove($p);
         $em->flush();
-        return new JR(null, Response::HTTP_NO_CONTENT);
+        return new JR("Message", Response::HTTP_NO_CONTENT);
     }
 }

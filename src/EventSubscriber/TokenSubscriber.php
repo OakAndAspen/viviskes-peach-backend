@@ -47,7 +47,7 @@ class TokenSubscriber implements EventSubscriberInterface
                 $user = $this->em->getRepository(User::class)->find(
                     $token->data->userId
                 );
-                if ($user) $event->getRequest()->attributes->set('user', $user);
+                if ($user) $event->getRequest()->attributes->set('authUser', $user);
             }
 
             if (!$token) throw new AccessDeniedHttpException('This action needs a valid token!');

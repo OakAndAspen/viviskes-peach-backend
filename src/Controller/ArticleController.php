@@ -3,7 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Article;
-use App\Service\JsonService as JS;
+use App\Service\FormService;
+use App\Service\NormalizerService as NS;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
@@ -12,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/articles")
+ * @Route("/article")
  */
 class ArticleController extends AbstractController implements TokenAuthenticatedController
 {
@@ -25,9 +26,9 @@ class ArticleController extends AbstractController implements TokenAuthenticated
     public function index(EntityManagerInterface $em)
     {
         $articles = $em->getRepository(Article::class)->findAll();
-        $data = [];
-        foreach ($articles as $a) array_push($data, JS::getArticle($a));
-        return new JR($data, Response::HTTP_OK);
+        $array = [];
+        foreach ($articles as $a) array_push($array, NS::getArticle($a));
+        return new JR($array);
     }
 
     /**
@@ -39,64 +40,65 @@ class ArticleController extends AbstractController implements TokenAuthenticated
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
-        $a = new Article();
-        $a->setTitle($req->get("title"));
-        $a->setAuthor($req->get("user"));
-        $a->setCreated(new \DateTime());
-        $a->setEdited(new \DateTime());
-        $a->setContent($req->get("content"));
+        $data = $req->get("article");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $em->persist($a);
-        $em->flush();
-        return new JR(JS::getArticle($a), Response::HTTP_CREATED);
+        $article = FormService::upsertArticle($em, $data);
+        if (is_string($article)) return new JR($article, Response::HTTP_BAD_REQUEST);
+
+        return new JR(NS::getArticle($article), Response::HTTP_CREATED);
     }
 
     /**
-     * @Route("/{id}", name="article-show", methods={"GET"})
+     * @Route("/{articleId}", name="article-show", methods={"GET"})
      *
      * @param EntityManagerInterface $em
+     * @param $articleId
      * @return Response
      */
-    public function show(EntityManagerInterface $em, $id)
+    public function show(EntityManagerInterface $em, $articleId)
     {
-        $a = $em->getRepository(Article::class)->find($id);
-        if(!$a) return new JR(null, Response::HTTP_NOT_FOUND);
-        return new JR(JS::getArticle($a, true), Response::HTTP_OK);
+        $article = $em->getRepository(Article::class)->find($articleId);
+        if (!$article) return new JR("Article not found", Response::HTTP_NOT_FOUND);
+        return new JR(NS::getArticle($article, true), Response::HTTP_CREATED);
     }
 
     /**
-     * @Route("/{id}", name="article-update", methods={"PATCH"})
+     * @Route("/{articleId}", name="article-update", methods={"PUT"})
      *
      * @param Request $req
      * @param EntityManagerInterface $em
+     * @param $articleId
      * @return JR
      */
-    public function update(Request $req, EntityManagerInterface $em, $id)
+    public function update(Request $req, EntityManagerInterface $em, $articleId)
     {
-        $a = $em->getRepository(Article::class)->find($id);
-        if(!$a) return new JR(null, Response::HTTP_NOT_FOUND);
-        if($req->get("title")) $a->setTitle($req->get("title"));
-        if($req->get("content")) $a->setContent($req->get("content"));
-        $a->setEdited(new \DateTime());
+        $data = $req->get("article");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $em->persist($a);
-        $em->flush();
-        return new JR(JS::getArticle($a, true), Response::HTTP_OK);
+        $article = $em->getRepository(Article::class)->find($articleId);
+        if (!$article) return new JR("Article not found", Response::HTTP_NOT_FOUND);
+
+        $article = FormService::upsertArticle($em, $data, $article);
+        if (is_string($article)) return new JR($article, Response::HTTP_BAD_REQUEST);
+
+        return new JR(NS::getArticle($article, true));
     }
 
     /**
-     * @Route("/{id}", name="article-delete", methods={"DELETE"})
+     * @Route("/{articleId}", name="article-delete", methods={"DELETE"})
      *
      * @param EntityManagerInterface $em
+     * @param $articleId
      * @return JR
      */
-    public function delete(EntityManagerInterface $em, $id)
+    public function delete(EntityManagerInterface $em, $articleId)
     {
-        $a = $em->getRepository(Article::class)->find($id);
-        if(!$a) return new JR(null, Response::HTTP_NOT_FOUND);
+        $article = $em->getRepository(Article::class)->find($articleId);
+        if (!$article) return new JR("Article not found", Response::HTTP_NOT_FOUND);
 
-        $em->remove($a);
+        $em->remove($article);
         $em->flush();
-        return new JR(null, Response::HTTP_NO_CONTENT);
+        return new JR("Article was deleted");
     }
 }

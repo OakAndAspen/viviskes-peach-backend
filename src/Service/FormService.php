@@ -21,7 +21,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class FormService
 {
-    public static function upsertArticle(EntityManagerInterface $em, $data, Article $a)
+    public static function upsertArticle(EntityManagerInterface $em, $data, Article $a = null)
     {
         $authorId = isset($data["author"]) ? $data["author"] : null;
         $title = isset($data["title"]) ? $data["title"] : null;
@@ -45,8 +45,8 @@ class FormService
         return $a;
     }
 
-    public static function upsertBook(EntityManagerInterface $em, $data, Book $b)
-    {
+    public static function upsertBook(EntityManagerInterface $em, $data, Book $b = null)
+{
         $name = isset($data["name"]) ? $data["name"] : null;
 
         if (!$b) {
@@ -61,8 +61,8 @@ class FormService
         return $b;
     }
 
-    public static function upsertCategory(EntityManagerInterface $em, $data, Category $c)
-    {
+    public static function upsertCategory(EntityManagerInterface $em, $data, Category $c = null)
+{
         $label = isset($data["label"]) ? $data["label"] : null;
 
         if (!$c) {
@@ -77,14 +77,13 @@ class FormService
         return $c;
     }
 
-    public static function upsertDocument(EntityManagerInterface $em, $data, Document $d)
-    {
+    public static function upsertDocument(EntityManagerInterface $em, $data, Document $d = null)
+{
         $folderId = isset($data["folder"]) ? $data["folder"] : null;
         $name = isset($data["name"]) ? $data["name"] : null;
-        $extension = isset($data["extension"]) ? $data["extension"] : null;
 
         if (!$d) {
-            if (!$folderId || !$name || !$extension) return "Missing data";
+            if (!$folderId || !$name) return "Missing data";
             $d = new Document();
             $d->setCreated(new DateTime());
         }
@@ -95,17 +94,18 @@ class FormService
             $d->setFolder($folder);
         }
 
-        if ($name) $d->setName($name);
-        if ($extension) $d->setExtension($extension);
-
+        if ($name) {
+            $d->setName(pathinfo($name, PATHINFO_FILENAME));
+            $d->setExtension(pathinfo($name, PATHINFO_EXTENSION));
+        }
 
         $em->persist($d);
         $em->flush();
         return $d;
     }
 
-    public static function upsertEvent(EntityManagerInterface $em, $data, Event $e)
-    {
+    public static function upsertEvent(EntityManagerInterface $em, $data, Event $e = null)
+{
         $title = isset($data["title"]) ? $data["title"] : null;
         $description = isset($data["description"]) ? $data["description"] : null;
         $start = isset($data["start"]) ? US::createDate($data["start"]) : null;
@@ -132,8 +132,8 @@ class FormService
         return $e;
     }
 
-    public static function upsertFolder(EntityManagerInterface $em, $data, Folder $f)
-    {
+    public static function upsertFolder(EntityManagerInterface $em, $data, Folder $f = null)
+{
         $parentId = isset($data["parent"]) ? $data["parent"] : null;
         $name = isset($data["name"]) ? $data["name"] : null;
 
@@ -156,8 +156,8 @@ class FormService
         return $f;
     }
 
-    public static function upsertLoan(EntityManagerInterface $em, $data, Loan $l)
-    {
+    public static function upsertLoan(EntityManagerInterface $em, $data, Loan $l = null)
+{
         $bookId = isset($data["book"]) ? $data["book"] : null;
         $userId = isset($data["user"]) ? $data["user"] : null;
 
@@ -180,8 +180,8 @@ class FormService
         return $l;
     }
 
-    public static function upsertMessage(EntityManagerInterface $em, $data, Message $m)
-    {
+    public static function upsertMessage(EntityManagerInterface $em, $data, Message $m = null)
+{
         $authorId = isset($data["author"]) ? $data["author"] : null;
         $topicId = isset($data["topic"]) ? $data["topic"] : null;
         $content = isset($data["content"]) ? $data["content"] : null;
@@ -205,8 +205,8 @@ class FormService
         return $m;
     }
 
-    public static function upsertParticipation(EntityManagerInterface $em, $data, Participation $p)
-    {
+    public static function upsertParticipation(EntityManagerInterface $em, $data, Participation $p = null)
+{
         $eventId = isset($data["event"]) ? $data["event"] : null;
         $userId = isset($data["user"]) ? $data["user"] : null;
         $day = isset($data["day"]) ? US::createDate($data["day"]) : null;
@@ -232,8 +232,8 @@ class FormService
         return $p;
     }
 
-    public static function upsertPartner(EntityManagerInterface $em, $data, Partner $p)
-    {
+    public static function upsertPartner(EntityManagerInterface $em, $data, Partner $p = null)
+{
         $label = isset($data["label"]) ? $data["label"] : null;
         $url = isset($data["url"]) ? $data["url"] : null;
 
@@ -250,8 +250,8 @@ class FormService
         return $p;
     }
 
-    public static function upsertTag(EntityManagerInterface $em, $data, Tag $t)
-    {
+    public static function upsertTag(EntityManagerInterface $em, $data, Tag $t = null)
+{
         $label = isset($data["label"]) ? $data["label"] : null;
 
         if (!$t) {
@@ -266,8 +266,8 @@ class FormService
         return $t;
     }
 
-    public static function upsertTopic(EntityManagerInterface $em, $data, Topic $t)
-    {
+    public static function upsertTopic(EntityManagerInterface $em, $data, Topic $t = null)
+{
         $eventId = isset($data["event"]) ? $data["event"] : null;
         $categoryId = isset($data["category"]) ? $data["category"] : null;
         $title = isset($data["title"]) ? $data["title"] : null;
@@ -292,8 +292,8 @@ class FormService
         return $t;
     }
 
-    public static function upsertUser(EntityManagerInterface $em, $data, User $u)
-    {
+    public static function upsertUser(EntityManagerInterface $em, $data, User $u = null)
+{
         $firstName = isset($data["firstName"]) ? $data["firstName"] : null;
         $lastName = isset($data["lastName"]) ? $data["lastName"] : null;
         $celticName = isset($data["celticName"]) ? $data["celticName"] : null;

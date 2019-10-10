@@ -3,7 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Category;
-use App\Service\JsonService as JS;
+use App\Service\FormService;
+use App\Service\NormalizerService as NS;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
@@ -13,7 +14,6 @@ use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route("/category")
- *
  */
 class CategoryController extends AbstractController implements TokenAuthenticatedController
 {
@@ -27,9 +27,10 @@ class CategoryController extends AbstractController implements TokenAuthenticate
     public function index(Request $req, EntityManagerInterface $em)
     {
         $category = $em->getRepository(Category::class)->findAll();
-        $data = [];
-        foreach ($category as $c) array_push($data, JS::getCategory($c, $req->get("user")));
-        return new JR($data, Response::HTTP_OK);
+
+        $array = [];
+        foreach ($category as $c) array_push($array, NS::getCategory($c, $req->get("authUser")));
+        return new JR($array);
     }
 
     /**
@@ -41,60 +42,67 @@ class CategoryController extends AbstractController implements TokenAuthenticate
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
-        $c = new Category();
-        $c->setLabel($req->get("label"));
+        $data = $req->get("category");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $em->persist($c);
-        $em->flush();
-        return new JR(JS::getCategory($c, $req->get("user")), Response::HTTP_CREATED);
+        $category = FormService::upsertCategory($em, $data);
+        if (is_string($category)) return new JR($category, Response::HTTP_BAD_REQUEST);
+
+        return new JR(NS::getCategory($category, $req->get("authUser")), Response::HTTP_CREATED);
     }
 
     /**
-     * @Route("/{id}", name="category-show", methods={"GET"})
+     * @Route("/{categoryId}", name="category-show", methods={"GET"})
      *
      * @param Request $req
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $categoryId
      * @return JR
      */
-    public function show(Request $req, EntityManagerInterface $em, $id)
+    public function show(Request $req, EntityManagerInterface $em, $categoryId)
     {
-        $c = $em->getRepository(Category::class)->find($id);
-        if (!$c) return new JR(null, Response::HTTP_NOT_FOUND);
-        return new JR(JS::getCategory($c, $req->get("user"), true), Response::HTTP_OK);
+        $category = $em->getRepository(Category::class)->find($categoryId);
+        if (!$category) return new JR("Category not found", Response::HTTP_NOT_FOUND);
+
+        return new JR(NS::getCategory($category, $req->get("authUser"), true));
     }
 
     /**
-     * @Route("/{id}", name="category-update", methods={"PATCH"})
+     * @Route("/{categoryId}", name="category-update", methods={"PUT"})
      *
      * @param Request $req
      * @param EntityManagerInterface $em
+     * @param $categoryId
      * @return JR
      */
-    public function update(Request $req, EntityManagerInterface $em, $id)
+    public function update(Request $req, EntityManagerInterface $em, $categoryId)
     {
-        $c = $em->getRepository(Category::class)->find($id);
-        if (!$c) return new JR(null, Response::HTTP_NOT_FOUND);
-        if ($req->get("label")) $c->setLabel($req->get("label"));
+        $data = $req->get("category");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $em->persist($c);
-        $em->flush();
-        return new JR(JS::getCategory($c, $req->get("user"), true), Response::HTTP_OK);
+        $category = $em->getRepository(Category::class)->find($categoryId);
+        if (!$category) return new JR("Category not found", Response::HTTP_NOT_FOUND);
+
+        $category = FormService::upsertCategory($em, $data, $category);
+        if (is_string($category)) return new JR($category, Response::HTTP_BAD_REQUEST);
+
+        return new JR(NS::getCategory($category, $req->get("authUser"), true));
     }
 
     /**
-     * @Route("/{id}", name="category-delete", methods={"DELETE"})
+     * @Route("/{categoryId}", name="category-delete", methods={"DELETE"})
      *
      * @param EntityManagerInterface $em
+     * @param $categoryId
      * @return JR
      */
-    public function delete(EntityManagerInterface $em, $id)
+    public function delete(EntityManagerInterface $em, $categoryId)
     {
-        $c = $em->getRepository(Category::class)->find($id);
-        if (!$c) return new JR(null, Response::HTTP_NOT_FOUND);
+        $c = $em->getRepository(Category::class)->find($categoryId);
+        if (!$c) return new JR("Category not found", Response::HTTP_NOT_FOUND);
 
         $em->remove($c);
         $em->flush();
-        return new JR(null, Response::HTTP_NO_CONTENT);
+        return new JR("Category was deleted");
     }
 }

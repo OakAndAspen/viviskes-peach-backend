@@ -7,7 +7,8 @@ use App\Entity\Event;
 use App\Entity\Message;
 use App\Entity\Topic;
 use App\Entity\User;
-use App\Service\JsonService as JS;
+use App\Service\FormService;
+use App\Service\NormalizerService as NS;
 use App\Service\UtilityService as US;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,9 +34,9 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
     public function index(Request $req, EntityManagerInterface $em)
     {
         $topic = $em->getRepository(Topic::class)->findAll();
-        $data = [];
-        foreach ($topic as $t) array_push($data, JS::getTopic($t, $req->get("user")));
-        return new JR($data, Response::HTTP_OK);
+        $array = [];
+        foreach ($topic as $t) array_push($array, NS::getTopic($t, $req->get("authUser")));
+        return new JR($array);
     }
 
     /**
@@ -48,127 +49,75 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
-        $eventId = $req->get('event');
-        $catId = $req->get('category');
-        $title = $req->get('title');
-        $message = $req->get('message');
+        $authUser = $req->get("authUser");
+        $data = $req->get("topic");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        if((!$eventId && !$catId) || !$title || !$message) {
-            return new JR(null, Response::HTTP_BAD_REQUEST);
-        }
+        $topic = FormService::upsertTopic($em, $data);
+        if (is_string($topic)) return new JR($topic, Response::HTTP_BAD_REQUEST);
 
-        // Create the topic
-        $t = new Topic();
-        $t->setTitle($title);
-        $t->setPinned(false);
-
-        if($eventId) {
-            $event = $em->getRepository(Event::class)->find($eventId);
-            if(!$event) return new JR(null, Response::HTTP_NOT_FOUND);
-            $t->setEvent($event);
-        } else {
-            $category = $em->getRepository(Category::class)->find($catId);
-            if(!$category) return new JR(null, Response::HTTP_NOT_FOUND);
-            $t->setCategory($category);
-        }
-
-        // Notify the users
-        foreach ($em->getRepository(User::class)->findAll() as $u) {
-            if($u !== $req->get("user")) {
-                $t->addUnreadUser($u);
-            }
-        }
-
-        $em->persist($t);
-        $em->flush();
-
-        // Create the message
-        $m = new Message();
-        $m->setTopic($t);
-        $m->setContent($message);
-        $m->setAuthor($req->get("user"));
-        $m->setCreated(new DateTime());
-        $m->setEdited(new DateTime());
-        $em->persist($m);
-        $em->flush();
-
-        return new JR(JS::getTopic($t, $req->get("user")), Response::HTTP_CREATED);
+        return new JR(NS::getTopic($topic, $authUser), Response::HTTP_CREATED);
     }
 
     /**
-     * @Route("/{id}", name="topic-show", methods={"GET"})
+     * @Route("/{topicId}", name="topic-show", methods={"GET"})
      *
      * @param Request $req
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $topicId
      * @return JR
      */
-    public function show(Request $req, EntityManagerInterface $em, $id)
+    public function show(Request $req, EntityManagerInterface $em, $topicId)
     {
-        $t = $em->getRepository(Topic::class)->find($id);
-        if(!$t) return new JR(null, Response::HTTP_NOT_FOUND);
+        $authUser = $req->get("authUser");
 
-        $t->removeUnreadUser($req->get("user"));
-        $em->persist($t);
+        $topic = $em->getRepository(Topic::class)->find($topicId);
+        if(!$topic) return new JR("Topic not found", Response::HTTP_NOT_FOUND);
+
+        $topic->removeUnreadUser($authUser);
+        $em->persist($topic);
         $em->flush();
 
-        return new JR(JS::getTopic($t, $req->get("user"), true), Response::HTTP_OK);
+        return new JR(NS::getTopic($topic, $authUser, true));
     }
 
     /**
-     * @Route("/{id}", name="topic-update", methods={"PATCH"})
+     * @Route("/{topicId}", name="topic-update", methods={"PUT"})
      *
      * @param Request $req
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $topicId
      * @return JR
      */
-    public function update(Request $req, EntityManagerInterface $em, $id)
+    public function update(Request $req, EntityManagerInterface $em, $topicId)
     {
-        $eventId = $req->get('event');
-        $catId = $req->get('category');
-        $title = $req->get('title');
-        $pinned = US::getBoolean($req->get('pinned'));
+        $authUser = $req->get("authUser");
+        $data = $req->get("topic");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $t = $em->getRepository(Topic::class)->find($id);
-        if(!$t) return new JR(null, Response::HTTP_NOT_FOUND);
+        $topic = $em->getRepository(Topic::class)->find($topicId);
+        if(!$topic) return new JR("Topic not found", Response::HTTP_NOT_FOUND);
 
-        if($eventId) {
-            $event = $em->getRepository(Event::class)->find($eventId);
-            if(!$event) return new JR(null, Response::HTTP_NOT_FOUND);
-            $t->setEvent($event);
-            $t->setCategory(null);
-        }
+        $topic = FormService::upsertTopic($em, $data, $topic);
+        if (is_string($topic)) return new JR($topic, Response::HTTP_BAD_REQUEST);
 
-        if($catId) {
-            $category = $em->getRepository(Category::class)->find($catId);
-            if(!$category) return new JR(null, Response::HTTP_NOT_FOUND);
-            $t->setCategory($category);
-            $t->setEvent(null);
-        }
-
-        if($title) $t->setTitle($title);
-        if($pinned !== null) $t->setPinned($pinned);
-
-        $em->persist($t);
-        $em->flush();
-        return new JR(JS::getTopic($t, $req->get("user"), true), Response::HTTP_OK);
+        return new JR(NS::getTopic($topic, $authUser, true));
     }
 
     /**
-     * @Route("/{id}", name="topic-delete", methods={"DELETE"})
+     * @Route("/{topicId}", name="topic-delete", methods={"DELETE"})
      *
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $topicId
      * @return JR
      */
-    public function delete(EntityManagerInterface $em, $id)
+    public function delete(EntityManagerInterface $em, $topicId)
     {
-        $t = $em->getRepository(Topic::class)->find($id);
-        if(!$t) return new JR(null, Response::HTTP_NOT_FOUND);
+        $t = $em->getRepository(Topic::class)->find($topicId);
+        if(!$t) return new JR("Topic not found", Response::HTTP_NOT_FOUND);
 
         $em->remove($t);
         $em->flush();
-        return new JR(null, Response::HTTP_NO_CONTENT);
+        return new JR("Topic was deleted");
     }
 }

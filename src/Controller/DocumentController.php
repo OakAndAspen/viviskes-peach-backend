@@ -3,21 +3,19 @@
 namespace App\Controller;
 
 use App\Entity\Document;
-use App\Entity\Folder;
-use App\Service\JsonService as JS;
+use App\Service\FormService;
+use App\Service\NormalizerService as NS;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
-use DateTime;
-use Exception;
 
 /**
- * @Route("/documents")
+ * @Route("/document")
  */
 class DocumentController extends AbstractController implements TokenAuthenticatedController
 {
@@ -30,9 +28,9 @@ class DocumentController extends AbstractController implements TokenAuthenticate
     public function index(EntityManagerInterface $em)
     {
         $documents = $em->getRepository(Document::class)->findAll();
-        $data = [];
-        foreach ($documents as $d) array_push($data, JS::getDocument($d));
-        return new JR($data, Response::HTTP_OK);
+        $array = [];
+        foreach ($documents as $d) array_push($array, NS::getDocument($d));
+        return new JR($array);
     }
 
     /**
@@ -45,105 +43,88 @@ class DocumentController extends AbstractController implements TokenAuthenticate
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
-        $name = $req->get('name');
+        $data = $req->get("document");
         $file = $req->files->get('file');
-        $folderId = $req->get('folder');
-        if (!$name || !$file) return new JR(null, Response::HTTP_BAD_REQUEST);
+        if (!$data || !$file) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $d = new Document();
-        $d->setName(pathinfo($name, PATHINFO_FILENAME));
-        $d->setExtension(pathinfo($name, PATHINFO_EXTENSION));
-        $d->setCreated(new DateTime());
+        $document = FormService::upsertDocument($em, $data);
+        if (is_string($document)) return new JR($document, Response::HTTP_BAD_REQUEST);
 
-        if ($folderId) {
-            $folder = $em->getRepository(Folder::class)->find($folderId);
-            if (!$folder) return new JR(null, Response::HTTP_NOT_FOUND);
-            $d->setFolder($folder);
-        }
+        $filename = $document->getId() . "." . $document->getExtension();
+        $path = "uploads" . DIRECTORY_SEPARATOR . "media" . DIRECTORY_SEPARATOR . $filename;
+        move_uploaded_file($file, $path);
 
-        $em->persist($d);
-        $em->flush();
-
-        $url = "uploads\\media\\" . $d->getId() . "." . $d->getExtension();
-        move_uploaded_file($file, $url);
-
-        return new JR(JS::getDocument($d), Response::HTTP_CREATED);
+        return new JR(NS::getDocument($document), Response::HTTP_CREATED);
     }
 
     /**
-     * @Route("/download/{id}", name="document-download", methods={"GET"})
+     * @Route("/download/{documentId}", name="document-download", methods={"GET"})
      *
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $documentId
      * @return BinaryFileResponse|JR
      */
-    public function download(EntityManagerInterface $em, $id)
+    public function download(EntityManagerInterface $em, $documentId)
     {
-        $d = $em->getRepository(Document::class)->find($id);
-        if (!$d) return new JR(null, Response::HTTP_NOT_FOUND);
+        $document = $em->getRepository(Document::class)->find($documentId);
+        if (!$document) return new JR("Document not found", Response::HTTP_NOT_FOUND);
 
-        $source = "uploads/media/" . $d->getId() . "." . $d->getExtension();
-        $destination = "downloads/" . $d->getName() . "." . $d->getExtension();
+        $source = "uploads/media/" . $document->getId() . "." . $document->getExtension();
+        $destination = "downloads/" . $document->getName() . "." . $document->getExtension();
         copy($source, $destination);
         return new JR(["url" => $destination]);
     }
 
     /**
-     * @Route("/{id}", name="document-show", methods={"GET"})
+     * @Route("/{documentId}", name="document-show", methods={"GET"})
      *
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $documentId
      * @return JR
      */
-    public function show(EntityManagerInterface $em, $id)
+    public function show(EntityManagerInterface $em, $documentId)
     {
-        $d = $em->getRepository(Document::class)->find($id);
-        if (!$d) return new JR(null, Response::HTTP_NOT_FOUND);
-        return new JR(JS::getDocument($d), Response::HTTP_OK);
+        $document = $em->getRepository(Document::class)->find($documentId);
+        if (!$document) return new JR("Document not found", Response::HTTP_NOT_FOUND);
+        return new JR(NS::getDocument($document));
     }
 
     /**
-     * @Route("/{id}", name="document-update", methods={"PATCH"})
+     * @Route("/{documentId}", name="document-update", methods={"PUT"})
      *
      * @param Request $req
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $documentId
      * @return JR
      */
-    public function update(Request $req, EntityManagerInterface $em, $id)
+    public function update(Request $req, EntityManagerInterface $em, $documentId)
     {
-        $d = $em->getRepository(Document::class)->find($id);
-        if (!$d) return new JR(null, Response::HTTP_NOT_FOUND);
+        $data = $req->get("document");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $name = $req->get('name');
-        $folderId = $req->get('folder');
+        $document = $em->getRepository(Document::class)->find($documentId);
+        if (!$document) return new JR("Document not found", Response::HTTP_NOT_FOUND);
 
-        if ($name) $d->setName($name);
-        if ($folderId) {
-            $folder = $em->getRepository(Folder::class)->find($folderId);
-            if (!$folder) return new JR(null, Response::HTTP_NOT_FOUND);
-            $d->setFolder($folder);
-        }
+        $document = FormService::upsertDocument($em, $data, $document);
+        if (is_string($document)) return new JR($document, Response::HTTP_BAD_REQUEST);
 
-        $em->persist($d);
-        $em->flush();
-        return new JR(JS::getDocument($d), Response::HTTP_OK);
+        return new JR(NS::getDocument($document));
     }
 
     /**
-     * @Route("/{id}", name="document-delete", methods={"DELETE"})
+     * @Route("/{documentId}", name="document-delete", methods={"DELETE"})
      *
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $documentId
      * @return JR
      */
-    public function delete(EntityManagerInterface $em, $id)
+    public function delete(EntityManagerInterface $em, $documentId)
     {
-        $d = $em->getRepository(Document::class)->find($id);
-        if (!$d) return new JR(null, Response::HTTP_NOT_FOUND);
+        $document = $em->getRepository(Document::class)->find($documentId);
+        if (!$document) return new JR("Document not found", Response::HTTP_NOT_FOUND);
 
-        $em->remove($d);
+        $em->remove($document);
         $em->flush();
-        return new JR(null, Response::HTTP_NO_CONTENT);
+        return new JR("Document was deleted", Response::HTTP_NO_CONTENT);
     }
 }

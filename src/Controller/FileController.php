@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/files")
+ * @Route("/file")
  */
 class FileController extends AbstractController implements TokenAuthenticatedController
 {

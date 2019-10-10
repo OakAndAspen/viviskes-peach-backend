@@ -3,7 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Partner;
-use App\Service\JsonService as JS;
+use App\Service\FormService;
+use App\Service\NormalizerService as NS;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
@@ -12,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/partners")
+ * @Route("/partner")
  */
 class PartnerController extends AbstractController implements TokenAuthenticatedController
 {
@@ -25,9 +26,9 @@ class PartnerController extends AbstractController implements TokenAuthenticated
     public function index(EntityManagerInterface $em)
     {
         $partners = $em->getRepository(Partner::class)->findAll();
-        $data = [];
-        foreach ($partners as $p) array_push($data, JS::getPartner($p));
-        return new JR($data, Response::HTTP_OK);
+        $array = [];
+        foreach ($partners as $p) array_push($array, NS::getPartner($p));
+        return new JR($array);
     }
 
     /**
@@ -39,60 +40,65 @@ class PartnerController extends AbstractController implements TokenAuthenticated
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
-        $p = new Partner();
-        $p->setLabel($req->get("label"));
-        $p->setUrl($req->get("url"));
+        $data = $req->get("partner");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $em->persist($p);
-        $em->flush();
-        return new JR(JS::getPartner($p), Response::HTTP_CREATED);
+        $partner = FormService::upsertPartner($em, $data);
+        if (is_string($partner)) return new JR($partner, Response::HTTP_BAD_REQUEST);
+
+        return new JR(NS::getPartner($partner), Response::HTTP_CREATED);
     }
 
     /**
-     * @Route("/{id}", name="partner-show", methods={"GET"})
+     * @Route("/{partnerId}", name="partner-show", methods={"GET"})
      *
      * @param EntityManagerInterface $em
+     * @param $partnerId
      * @return Response
      */
-    public function show(EntityManagerInterface $em, $id)
+    public function show(EntityManagerInterface $em, $partnerId)
     {
-        $p = $em->getRepository(Partner::class)->find($id);
-        if(!$p) return new JR(null, Response::HTTP_NOT_FOUND);
-        return new JR(JS::getPartner($p), Response::HTTP_OK);
+        $p = $em->getRepository(Partner::class)->find($partnerId);
+        if (!$p) return new JR("Partner not found", Response::HTTP_NOT_FOUND);
+        return new JR(NS::getPartner($p));
     }
 
     /**
-     * @Route("/{id}", name="partner-update", methods={"PATCH"})
+     * @Route("/{partnerId}", name="partner-update", methods={"PUT"})
      *
      * @param Request $req
      * @param EntityManagerInterface $em
+     * @param $partnerId
      * @return JR
      */
-    public function update(Request $req, EntityManagerInterface $em, $id)
+    public function update(Request $req, EntityManagerInterface $em, $partnerId)
     {
-        $p = $em->getRepository(Partner::class)->find($id);
-        if(!$p) return new JR(null, Response::HTTP_NOT_FOUND);
-        if($req->get("label")) $p->setLabel($req->get("label"));
-        if($req->get("url")) $p->setUrl($req->get("url"));
+        $data = $req->get("partner");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $em->persist($p);
-        $em->flush();
-        return new JR(JS::getPartner($p), Response::HTTP_OK);
+        $p = $em->getRepository(Partner::class)->find($partnerId);
+        if (!$p) return new JR("Partner not found", Response::HTTP_NOT_FOUND);
+
+        $partner = FormService::upsertPartner($em, $data);
+        if (is_string($partner)) return new JR($partner, Response::HTTP_BAD_REQUEST);
+
+        return new JR(NS::getPartner($p));
     }
 
     /**
-     * @Route("/{id}", name="partner-delete", methods={"DELETE"})
+     * @Route("/{partnerId}", name="partner-delete", methods={"DELETE"})
      *
      * @param EntityManagerInterface $em
+     * @param $partnerId
      * @return JR
      */
-    public function delete(EntityManagerInterface $em, $id)
+    public function delete(EntityManagerInterface $em, $partnerId)
     {
-        $p = $em->getRepository(Partner::class)->find($id);
-        if(!$p) return new JR(null, Response::HTTP_NOT_FOUND);
+        $p = $em->getRepository(Partner::class)->find($partnerId);
+        if (!$p) return new JR("Partner not found", Response::HTTP_NOT_FOUND);
 
         $em->remove($p);
         $em->flush();
-        return new JR(null, Response::HTTP_NO_CONTENT);
+        return new JR("Partner was deleted", Response::HTTP_NO_CONTENT);
     }
 }

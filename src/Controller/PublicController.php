@@ -5,13 +5,12 @@ namespace App\Controller;
 use App\Entity\Event;
 use App\Entity\Partner;
 use App\Entity\User;
-use App\Service\JsonService as JS;
+use App\Service\NormalizerService as NS;
 use App\Service\UtilityService as US;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class PublicController extends AbstractController
@@ -77,8 +76,8 @@ class PublicController extends AbstractController
     {
         $partners = $em->getRepository(Partner::class)->findAll();
         $data = [];
-        foreach ($partners as $p) array_push($data, JS::getPartner($p));
-        return new JR($data, Response::HTTP_OK);
+        foreach ($partners as $p) array_push($data, NS::getPartner($p));
+        return new JR($data);
     }
 
     /**
@@ -102,6 +101,6 @@ class PublicController extends AbstractController
             'privacy' => $e->getPrivacy()
         ]);
 
-        return new JR($data, Response::HTTP_OK);
+        return new JR($data);
     }
 }

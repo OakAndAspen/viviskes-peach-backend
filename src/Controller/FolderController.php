@@ -3,22 +3,20 @@
 namespace App\Controller;
 
 use App\Entity\Folder;
-use App\Service\JsonService as JS;
+use App\Service\FormService;
+use App\Service\NormalizerService as NS;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
-use DateTime;
-use Exception;
 use ZipArchive;
 
 /**
- * @Route("/folders")
+ * @Route("/folder")
  */
 class FolderController extends AbstractController implements TokenAuthenticatedController
 {
@@ -31,9 +29,9 @@ class FolderController extends AbstractController implements TokenAuthenticatedC
     public function index(EntityManagerInterface $em)
     {
         $folders = $em->getRepository(Folder::class)->findAll();
-        $data = [];
-        foreach ($folders as $f) array_push($data, JS::getFolder($f));
-        return new JR($data, Response::HTTP_OK);
+        $array = [];
+        foreach ($folders as $f) array_push($array, NS::getFolder($f));
+        return new JR($array);
     }
 
     /**
@@ -46,36 +44,26 @@ class FolderController extends AbstractController implements TokenAuthenticatedC
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
-        $name = $req->get('name');
-        $parentId = $req->get('parent');
-        if (!$name) return new JR(null, Response::HTTP_BAD_REQUEST);
+        $data = $req->get("folder");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $f = new Folder();
-        $f->setName($name);
-        $f->setCreated(new DateTime());
+        $folder = FormService::upsertFolder($em, $data);
+        if (is_string($folder)) return new JR($folder, Response::HTTP_BAD_REQUEST);
 
-        if ($parentId) {
-            $parent = $em->getRepository(Folder::class)->find($parentId);
-            if (!$parent) return new JR(null, Response::HTTP_NOT_FOUND);
-            $f->setParent($parent);
-        }
-
-        $em->persist($f);
-        $em->flush();
-        return new JR(JS::getFolder($f), Response::HTTP_CREATED);
+        return new JR(NS::getFolder($folder), Response::HTTP_CREATED);
     }
 
     /**
-     * @Route("/download/{id}", name="folder-download", methods={"GET"})
+     * @Route("/download/{folderId}", name="folder-download", methods={"GET"})
      *
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $folderId
      * @return JR|Response
      */
-    public function download(EntityManagerInterface $em, $id)
+    public function download(EntityManagerInterface $em, $folderId)
     {
-        $f = $em->getRepository(Folder::class)->find($id);
-        if (!$f) return new JR(null, Response::HTTP_NOT_FOUND);
+        $f = $em->getRepository(Folder::class)->find($folderId);
+        if (!$f) return new JR("Folder not found", Response::HTTP_NOT_FOUND);
 
         $zip = new ZipArchive();
         $zipName = $f->getName() . '.zip';
@@ -99,62 +87,56 @@ class FolderController extends AbstractController implements TokenAuthenticatedC
     }
 
     /**
-     * @Route("/{id}", name="folder-show", methods={"GET"})
+     * @Route("/{folderId}", name="folder-show", methods={"GET"})
      *
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $folderId
      * @return JR
      */
-    public function show(EntityManagerInterface $em, $id)
+    public function show(EntityManagerInterface $em, $folderId)
     {
-        $f = $em->getRepository(Folder::class)->find($id);
-        if (!$f) return new JR(null, Response::HTTP_NOT_FOUND);
-        return new JR(JS::getFolder($f, true), Response::HTTP_OK);
+        $f = $em->getRepository(Folder::class)->find($folderId);
+        if (!$f) return new JR("Folder not found", Response::HTTP_NOT_FOUND);
+        return new JR(NS::getFolder($f, true));
     }
 
     /**
-     * @Route("/{id}", name="folder-update", methods={"PATCH"})
+     * @Route("/{folderId}", name="folder-update", methods={"PUT"})
      *
      * @param Request $req
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $folderId
      * @return JR
      */
-    public function update(Request $req, EntityManagerInterface $em, $id)
+    public function update(Request $req, EntityManagerInterface $em, $folderId)
     {
-        $f = $em->getRepository(Folder::class)->find($id);
-        if (!$f) return new JR(null, Response::HTTP_NOT_FOUND);
+        $data = $req->get("folder");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $name = $req->get('name');
-        $parentId = $req->get('parent');
+        $folder = $em->getRepository(Folder::class)->find($folderId);
+        if (!$folder) return new JR("Folder not found", Response::HTTP_NOT_FOUND);
 
-        if ($name) $f->setName($name);
-        if ($parentId) {
-            $parent = $em->getRepository(Folder::class)->find($parentId);
-            if (!$parent) return new JR(null, Response::HTTP_NOT_FOUND);
-            $f->setParent($parent);
-        }
+        $folder = FormService::upsertFolder($em, $data, $folder);
+        if (is_string($folder)) return new JR($folder, Response::HTTP_BAD_REQUEST);
 
-        $em->persist($f);
-        $em->flush();
-        return new JR(JS::getFolder($f), Response::HTTP_OK);
+        return new JR(NS::getFolder($folder));
     }
 
     /**
-     * @Route("/{id}", name="folder-delete", methods={"DELETE"})
+     * @Route("/{folderId}", name="folder-delete", methods={"DELETE"})
      *
      * @param EntityManagerInterface $em
-     * @param $id
+     * @param $folderId
      * @return JR
      */
-    public function delete(EntityManagerInterface $em, $id)
+    public function delete(EntityManagerInterface $em, $folderId)
     {
-        $f = $em->getRepository(Folder::class)->find($id);
-        if (!$f) return new JR(null, Response::HTTP_NOT_FOUND);
+        $f = $em->getRepository(Folder::class)->find($folderId);
+        if (!$f) return new JR("Folder not found", Response::HTTP_NOT_FOUND);
 
         $em->remove($f);
         $em->flush();
-        return new JR(null, Response::HTTP_NO_CONTENT);
+        return new JR("Folder was deleted");
     }
 
 

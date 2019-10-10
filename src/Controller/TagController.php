@@ -3,7 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Tag;
-use App\Service\JsonService as JS;
+use App\Service\FormService;
+use App\Service\NormalizerService as NS;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
@@ -12,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/tags")
+ * @Route("/tag")
  */
 class TagController extends AbstractController implements TokenAuthenticatedController
 {
@@ -25,9 +26,9 @@ class TagController extends AbstractController implements TokenAuthenticatedCont
     public function index(EntityManagerInterface $em)
     {
         $tags = $em->getRepository(Tag::class)->findAll();
-        $data = [];
-        foreach ($tags as $p) array_push($data, JS::getTag($p));
-        return new JR($data, Response::HTTP_OK);
+        $array = [];
+        foreach ($tags as $p) array_push($array, NS::getTag($p));
+        return new JR($array);
     }
 
     /**
@@ -39,58 +40,65 @@ class TagController extends AbstractController implements TokenAuthenticatedCont
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
-        $p = new Tag();
-        $p->setLabel($req->get("label"));
+        $data = $req->get("tag");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $em->persist($p);
-        $em->flush();
-        return new JR(JS::getTag($p), Response::HTTP_CREATED);
+        $tag = FormService::upsertTag($em, $data);
+        if (is_string($tag)) return new JR($tag, Response::HTTP_BAD_REQUEST);
+
+        return new JR(NS::getTag($tag), Response::HTTP_CREATED);
     }
 
     /**
-     * @Route("/{id}", name="tag-show", methods={"GET"})
+     * @Route("/{tagId}", name="tag-show", methods={"GET"})
      *
      * @param EntityManagerInterface $em
+     * @param $tagId
      * @return Response
      */
-    public function show(EntityManagerInterface $em, $id)
+    public function show(EntityManagerInterface $em, $tagId)
     {
-        $p = $em->getRepository(Tag::class)->find($id);
-        if(!$p) return new JR(null, Response::HTTP_NOT_FOUND);
-        return new JR(JS::getTag($p), Response::HTTP_OK);
+        $p = $em->getRepository(Tag::class)->find($tagId);
+        if(!$p) return new JR("Tag not found", Response::HTTP_NOT_FOUND);
+        return new JR(NS::getTag($p));
     }
 
     /**
-     * @Route("/{id}", name="tag-update", methods={"PATCH"})
+     * @Route("/{tagId}", name="tag-update", methods={"PUT"})
      *
      * @param Request $req
      * @param EntityManagerInterface $em
+     * @param $tagId
      * @return JR
      */
-    public function update(Request $req, EntityManagerInterface $em, $id)
+    public function update(Request $req, EntityManagerInterface $em, $tagId)
     {
-        $p = $em->getRepository(Tag::class)->find($id);
-        if(!$p) return new JR(null, Response::HTTP_NOT_FOUND);
-        if($req->get("label")) $p->setLabel($req->get("label"));
+        $data = $req->get("tag");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $em->persist($p);
-        $em->flush();
-        return new JR(JS::getTag($p), Response::HTTP_OK);
+        $p = $em->getRepository(Tag::class)->find($tagId);
+        if(!$p) return new JR("Tag not found", Response::HTTP_NOT_FOUND);
+
+        $tag = FormService::upsertTag($em, $data);
+        if (is_string($tag)) return new JR($tag, Response::HTTP_BAD_REQUEST);
+
+        return new JR(NS::getTag($p));
     }
 
     /**
-     * @Route("/{id}", name="tag-delete", methods={"DELETE"})
+     * @Route("/{tagId}", name="tag-delete", methods={"DELETE"})
      *
      * @param EntityManagerInterface $em
+     * @param $tagId
      * @return JR
      */
-    public function delete(EntityManagerInterface $em, $id)
+    public function delete(EntityManagerInterface $em, $tagId)
     {
-        $p = $em->getRepository(Tag::class)->find($id);
-        if(!$p) return new JR(null, Response::HTTP_NOT_FOUND);
+        $p = $em->getRepository(Tag::class)->find($tagId);
+        if(!$p) return new JR("Tag not found", Response::HTTP_NOT_FOUND);
 
         $em->remove($p);
         $em->flush();
-        return new JR(null, Response::HTTP_NO_CONTENT);
+        return new JR("Tag was deleted");
     }
 }
