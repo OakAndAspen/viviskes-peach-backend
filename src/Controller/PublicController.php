@@ -16,6 +16,18 @@ use Symfony\Component\Routing\Annotation\Route;
 class PublicController extends AbstractController
 {
     /**
+     * @Route("/debug", name="debug", methods="GET")
+     *
+     * @param Request $req
+     * @param EntityManagerInterface $em
+     * @return JR
+     */
+    public function debug(Request $req, EntityManagerInterface $em) {
+        $password = "password";
+        return new JR(password_hash($password, PASSWORD_BCRYPT));
+    }
+
+    /**
      * @Route("/login", name="public-login", methods="POST")
      *
      * @param Request $req

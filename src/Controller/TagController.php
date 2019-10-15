@@ -58,9 +58,9 @@ class TagController extends AbstractController implements TokenAuthenticatedCont
      */
     public function show(EntityManagerInterface $em, $tagId)
     {
-        $p = $em->getRepository(Tag::class)->find($tagId);
-        if(!$p) return new JR("Tag not found", Response::HTTP_NOT_FOUND);
-        return new JR(NS::getTag($p));
+        $tag = $em->getRepository(Tag::class)->find($tagId);
+        if(!$tag) return new JR("Tag not found", Response::HTTP_NOT_FOUND);
+        return new JR(NS::getTag($tag));
     }
 
     /**
@@ -76,13 +76,13 @@ class TagController extends AbstractController implements TokenAuthenticatedCont
         $data = $req->get("tag");
         if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $p = $em->getRepository(Tag::class)->find($tagId);
-        if(!$p) return new JR("Tag not found", Response::HTTP_NOT_FOUND);
+        $tag = $em->getRepository(Tag::class)->find($tagId);
+        if(!$tag) return new JR("Tag not found", Response::HTTP_NOT_FOUND);
 
-        $tag = FormService::upsertTag($em, $data);
+        $tag = FormService::upsertTag($em, $data, $tag);
         if (is_string($tag)) return new JR($tag, Response::HTTP_BAD_REQUEST);
 
-        return new JR(NS::getTag($p));
+        return new JR(NS::getTag($tag));
     }
 
     /**
@@ -94,10 +94,10 @@ class TagController extends AbstractController implements TokenAuthenticatedCont
      */
     public function delete(EntityManagerInterface $em, $tagId)
     {
-        $p = $em->getRepository(Tag::class)->find($tagId);
-        if(!$p) return new JR("Tag not found", Response::HTTP_NOT_FOUND);
+        $tag = $em->getRepository(Tag::class)->find($tagId);
+        if(!$tag) return new JR("Tag not found", Response::HTTP_NOT_FOUND);
 
-        $em->remove($p);
+        $em->remove($tag);
         $em->flush();
         return new JR("Tag was deleted");
     }

@@ -46,7 +46,7 @@ class FormService
     }
 
     public static function upsertBook(EntityManagerInterface $em, $data, Book $b = null)
-{
+    {
         $name = isset($data["name"]) ? $data["name"] : null;
 
         if (!$b) {
@@ -62,7 +62,7 @@ class FormService
     }
 
     public static function upsertCategory(EntityManagerInterface $em, $data, Category $c = null)
-{
+    {
         $label = isset($data["label"]) ? $data["label"] : null;
 
         if (!$c) {
@@ -78,7 +78,7 @@ class FormService
     }
 
     public static function upsertDocument(EntityManagerInterface $em, $data, Document $d = null)
-{
+    {
         $folderId = isset($data["folder"]) ? $data["folder"] : null;
         $name = isset($data["name"]) ? $data["name"] : null;
 
@@ -105,7 +105,7 @@ class FormService
     }
 
     public static function upsertEvent(EntityManagerInterface $em, $data, Event $e = null)
-{
+    {
         $title = isset($data["title"]) ? $data["title"] : null;
         $description = isset($data["description"]) ? $data["description"] : null;
         $start = isset($data["start"]) ? US::createDate($data["start"]) : null;
@@ -133,7 +133,7 @@ class FormService
     }
 
     public static function upsertFolder(EntityManagerInterface $em, $data, Folder $f = null)
-{
+    {
         $parentId = isset($data["parent"]) ? $data["parent"] : null;
         $name = isset($data["name"]) ? $data["name"] : null;
 
@@ -157,7 +157,7 @@ class FormService
     }
 
     public static function upsertLoan(EntityManagerInterface $em, $data, Loan $l = null)
-{
+    {
         $bookId = isset($data["book"]) ? $data["book"] : null;
         $userId = isset($data["user"]) ? $data["user"] : null;
 
@@ -181,7 +181,7 @@ class FormService
     }
 
     public static function upsertMessage(EntityManagerInterface $em, $data, Message $m = null)
-{
+    {
         $authorId = isset($data["author"]) ? $data["author"] : null;
         $topicId = isset($data["topic"]) ? $data["topic"] : null;
         $content = isset($data["content"]) ? $data["content"] : null;
@@ -198,6 +198,7 @@ class FormService
             $m->setCreated(new DateTime());
         }
 
+        $m->setEdited(new DateTime());
         if ($content) $m->setContent($content);
 
         $em->persist($m);
@@ -206,7 +207,7 @@ class FormService
     }
 
     public static function upsertParticipation(EntityManagerInterface $em, $data, Participation $p = null)
-{
+    {
         $eventId = isset($data["event"]) ? $data["event"] : null;
         $userId = isset($data["user"]) ? $data["user"] : null;
         $day = isset($data["day"]) ? US::createDate($data["day"]) : null;
@@ -233,7 +234,7 @@ class FormService
     }
 
     public static function upsertPartner(EntityManagerInterface $em, $data, Partner $p = null)
-{
+    {
         $label = isset($data["label"]) ? $data["label"] : null;
         $url = isset($data["url"]) ? $data["url"] : null;
 
@@ -251,7 +252,7 @@ class FormService
     }
 
     public static function upsertTag(EntityManagerInterface $em, $data, Tag $t = null)
-{
+    {
         $label = isset($data["label"]) ? $data["label"] : null;
 
         if (!$t) {
@@ -267,7 +268,7 @@ class FormService
     }
 
     public static function upsertTopic(EntityManagerInterface $em, $data, Topic $t = null)
-{
+    {
         $eventId = isset($data["event"]) ? $data["event"] : null;
         $categoryId = isset($data["category"]) ? $data["category"] : null;
         $title = isset($data["title"]) ? $data["title"] : null;
@@ -275,13 +276,19 @@ class FormService
 
         if (!$t) {
             if ((!$eventId && !$categoryId) || !$title || $pinned === null) return "Missing data";
-            $category = $em->getRepository(Category::class)->find($categoryId);
-            $event = $em->getRepository(Event::class)->find($eventId);
-            if (!$category && !$event) return "Category or event not found";
 
             $t = new Topic();
-            if ($category) $t->setCategory($category);
-            if ($event) $t->setEvent($event);
+
+            if ($categoryId) {
+                $category = $em->getRepository(Category::class)->find($categoryId);
+                if (!$category) return "Category not found";
+                $t->setCategory($category);
+            }
+            if ($eventId) {
+                $event = $em->getRepository(Event::class)->find($eventId);
+                if (!$event) return "Event not found";
+                $t->setEvent($event);
+            }
         }
 
         if ($title) $t->setTitle($title);
@@ -293,7 +300,7 @@ class FormService
     }
 
     public static function upsertUser(EntityManagerInterface $em, $data, User $u = null)
-{
+    {
         $firstName = isset($data["firstName"]) ? $data["firstName"] : null;
         $lastName = isset($data["lastName"]) ? $data["lastName"] : null;
         $celticName = isset($data["celticName"]) ? $data["celticName"] : null;

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Book;
+use App\Service\FormService;
 use App\Service\NormalizerService as NS;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,9 +26,9 @@ class BookController extends AbstractController implements TokenAuthenticatedCon
     public function index(EntityManagerInterface $em)
     {
         $books = $em->getRepository(Book::class)->findAll();
-        $data = [];
-        foreach ($books as $p) array_push($data, NS::getBook($p));
-        return new JR($data);
+        $array = [];
+        foreach ($books as $p) array_push($array, NS::getBook($p));
+        return new JR($array);
     }
 
     /**
@@ -39,10 +40,13 @@ class BookController extends AbstractController implements TokenAuthenticatedCon
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
-        $b = new Book();
+        $data = $req->get("book");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
+        $book = FormService::upsertBook($em, $data);
+        if (is_string($book)) return new JR($book, Response::HTTP_BAD_REQUEST);
 
-        return new JR(NS::getBook($b, $em), Response::HTTP_CREATED);
+        return new JR(NS::getBook($book, true), Response::HTTP_CREATED);
     }
 
     /**
@@ -56,7 +60,7 @@ class BookController extends AbstractController implements TokenAuthenticatedCon
     {
         $b = $em->getRepository(Book::class)->find($bookId);
         if (!$b) return new JR("Book not found", Response::HTTP_NOT_FOUND);
-        return new JR(NS::getBook($b, $em));
+        return new JR(NS::getBook($b, true));
     }
 
     /**
@@ -69,13 +73,17 @@ class BookController extends AbstractController implements TokenAuthenticatedCon
      */
     public function update(Request $req, EntityManagerInterface $em, $bookId)
     {
-        $b = $em->getRepository(Book::class)->find($bookId);
-        if (!$b) return new JR("Book not found", Response::HTTP_NOT_FOUND);
-        if ($req->get("name")) $b->setName($req->get("name"));
 
-        $em->persist($b);
-        $em->flush();
-        return new JR(NS::getBook($b, $em));
+        $data = $req->get("book");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
+
+        $book = $em->getRepository(Book::class)->find($bookId);
+        if (!$book) return new JR("Book not found", Response::HTTP_NOT_FOUND);
+
+        $book = FormService::upsertBook($em, $data, $book);
+        if (is_string($book)) return new JR($book, Response::HTTP_BAD_REQUEST);
+
+        return new JR(NS::getBook($book, true));
     }
 
     /**

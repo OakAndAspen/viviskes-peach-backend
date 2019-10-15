@@ -2,8 +2,10 @@
 
 namespace App\Service;
 
+use App\Entity\Topic;
 use App\Entity\User;
 use DateTime;
+use DateTimeInterface;
 use Exception;
 use Firebase\JWT\JWT;
 
@@ -75,22 +77,24 @@ class UtilityService
     /**
      * Returns a date in the YYYY-MM-DD format
      *
-     * @param \DateTimeInterface $date
+     * @param DateTimeInterface $date
      * @return string
      */
-    public static function dateToString(\DateTimeInterface $date)
+    public static function dateToString($date)
     {
+        if(!$date) return null;
         return $date->format('Y-m-d');
     }
 
     /**
      * Returns a datetime in the YYYY-MM-DD HH:II:SS format
      *
-     * @param \DateTimeInterface $date
+     * @param DateTimeInterface $date
      * @return string
      */
-    public static function datetimeToString(\DateTimeInterface $date)
+    public static function datetimeToString($date)
     {
+        if(!$date) return null;
         return $date->format('Y-m-d H:i:s');
     }
 
@@ -164,5 +168,15 @@ class UtilityService
             return false;
         }
         return $date;
+    }
+
+    public static function getLastMessage(Topic $t) {
+        $lastMessage = null;
+        foreach ($t->getMessages() as $message) {
+            if (!$lastMessage || $message->getCreated() > $lastMessage->getCreated()) {
+                $lastMessage = $message;
+            }
+        }
+        return $lastMessage;
     }
 }

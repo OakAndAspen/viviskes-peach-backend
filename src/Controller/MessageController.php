@@ -3,11 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Message;
-use App\Entity\Topic;
 use App\Entity\User;
 use App\Service\FormService;
 use App\Service\NormalizerService as NS;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
@@ -46,6 +44,8 @@ class MessageController extends AbstractController implements TokenAuthenticated
         $authUser = $req->get("authUser");
         $data = $req->get("message");
         if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
+
+        $data["author"] = $authUser->getId();
 
         $message = FormService::upsertMessage($em, $data);
         if (is_string($message)) return new JR($message, Response::HTTP_BAD_REQUEST);
@@ -86,10 +86,10 @@ class MessageController extends AbstractController implements TokenAuthenticated
         $data = $req->get("message");
         if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $m = $em->getRepository(Message::class)->find($messageId);
-        if (!$m) return new JR("Message not found", Response::HTTP_NOT_FOUND);
+        $message = $em->getRepository(Message::class)->find($messageId);
+        if (!$message) return new JR("Message not found", Response::HTTP_NOT_FOUND);
 
-        $message = FormService::upsertMessage($em, $data, $m);
+        $message = FormService::upsertMessage($em, $data, $message);
         if (is_string($message)) return new JR($message, Response::HTTP_BAD_REQUEST);
 
         $topic = $message->getTopic();
@@ -99,7 +99,7 @@ class MessageController extends AbstractController implements TokenAuthenticated
         $em->persist($topic);
         $em->flush();
 
-        return new JR(NS::getMessage($m, true));
+        return new JR(NS::getMessage($message, true));
     }
 
     /**

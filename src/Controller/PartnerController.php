@@ -58,9 +58,9 @@ class PartnerController extends AbstractController implements TokenAuthenticated
      */
     public function show(EntityManagerInterface $em, $partnerId)
     {
-        $p = $em->getRepository(Partner::class)->find($partnerId);
-        if (!$p) return new JR("Partner not found", Response::HTTP_NOT_FOUND);
-        return new JR(NS::getPartner($p));
+        $partner = $em->getRepository(Partner::class)->find($partnerId);
+        if (!$partner) return new JR("Partner not found", Response::HTTP_NOT_FOUND);
+        return new JR(NS::getPartner($partner));
     }
 
     /**
@@ -76,13 +76,13 @@ class PartnerController extends AbstractController implements TokenAuthenticated
         $data = $req->get("partner");
         if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $p = $em->getRepository(Partner::class)->find($partnerId);
-        if (!$p) return new JR("Partner not found", Response::HTTP_NOT_FOUND);
+        $partner = $em->getRepository(Partner::class)->find($partnerId);
+        if (!$partner) return new JR("Partner not found", Response::HTTP_NOT_FOUND);
 
-        $partner = FormService::upsertPartner($em, $data);
+        $partner = FormService::upsertPartner($em, $data, $partner);
         if (is_string($partner)) return new JR($partner, Response::HTTP_BAD_REQUEST);
 
-        return new JR(NS::getPartner($p));
+        return new JR(NS::getPartner($partner));
     }
 
     /**
@@ -94,10 +94,10 @@ class PartnerController extends AbstractController implements TokenAuthenticated
      */
     public function delete(EntityManagerInterface $em, $partnerId)
     {
-        $p = $em->getRepository(Partner::class)->find($partnerId);
-        if (!$p) return new JR("Partner not found", Response::HTTP_NOT_FOUND);
+        $partner = $em->getRepository(Partner::class)->find($partnerId);
+        if (!$partner) return new JR("Partner not found", Response::HTTP_NOT_FOUND);
 
-        $em->remove($p);
+        $em->remove($partner);
         $em->flush();
         return new JR("Partner was deleted", Response::HTTP_NO_CONTENT);
     }

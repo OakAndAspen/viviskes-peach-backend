@@ -44,20 +44,23 @@ class NormalizerService
         return $data;
     }
 
-    public static function getBook(Book $b)
+    public static function getBook(Book $b, $loans = false)
     {
         $data = [
             'id' => $b->getId(),
             'name' => $b->getName(),
-            'loans' => []
+            'isLoaned' => false
         ];
 
         foreach ($b->getLoans() as $loan) {
-            array_push($data['loans'], [
-                'user' => self::getUser($loan->getUser()),
-                'start' => US::datetimeToString($loan->getStart()),
-                'end' => $loan->getEnd() ? US::datetimeToString($loan->getEnd()) : null
-            ]);
+            if (!$loan->getEnd()) $data['isLoaned'] = true;
+        }
+
+        if ($loans) {
+            $data["loans"] = [];
+            foreach ($b->getLoans() as $loan) {
+                array_push($data['loans'], self::getLoan($loan));
+            }
         }
 
         return $data;
@@ -153,15 +156,18 @@ class NormalizerService
         return $data;
     }
 
-    public static function getLoan(Loan $l)
+    public static function getLoan(Loan $l, $user = true, $book = false)
     {
-        return [
+        $data = [
             'id' => $l->getId(),
-            'book' => $l->getBook()->getId(),
-            'user' => $l->getUser()->getId(),
-            'start' => US::datetimeToString($l->getStart()),
-            'end' => US::datetimeToString($l->getEnd())
+            'start' => $l->getStart() ? US::datetimeToString($l->getStart()) : null,
+            'end' => $l->getEnd() ? US::datetimeToString($l->getEnd()) : null
         ];
+
+        if ($user) $data["user"] = self::getUser($l->getUser());
+        if ($book) $data["book"] = self::getBook($l->getBook());
+
+        return $data;
     }
 
     public static function getMessage(Message $m, $content = false)
@@ -208,28 +214,28 @@ class NormalizerService
         ];
     }
 
-    public static function getTopic(Topic $t, User $u, $messages = false)
+    public static function getTopic(Topic $t, User $u, $messages = false, $parent = false)
     {
         $data = [
             'id' => $t->getId(),
             'title' => $t->getTitle(),
-            'event' => $t->getEvent() ? self::getEvent($t->getEvent(), $u) : null,
-            'category' => $t->getCategory() ? self::getCategory($t->getCategory(), $u) : null,
             'pinned' => $t->getPinned(),
             'read' => !$t->getUnreadUsers()->contains($u)
         ];
 
-        $lm = null;
-        foreach ($t->getMessages() as $m) {
-            if (!$lm || $m->getCreated() > $lm->getCreated()) $lm = $m;
-        }
-        if ($lm) $data['lastMessage'] = self::getMessage($lm);
+        $lastMessage = US::getLastMessage($t);
+        if ($lastMessage) $data['lastMessage'] = self::getMessage($lastMessage);
 
         if ($messages) {
             $data['messages'] = [];
             foreach ($t->getMessages() as $m) {
                 array_push($data['messages'], self::getMessage($m, true));
             }
+        }
+
+        if($parent) {
+            if($t->getEvent()) $data['event'] = self::getEvent($t->getEvent(), $u);
+            if($t->getCategory()) $data['category'] = self::getCategory($t->getCategory(), $u);
         }
 
         return $data;

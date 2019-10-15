@@ -18,20 +18,6 @@ use Symfony\Component\Routing\Annotation\Route;
 class LoanController extends AbstractController implements TokenAuthenticatedController
 {
     /**
-     * @Route("", name="loan-index", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @return JR
-     */
-    public function index(EntityManagerInterface $em)
-    {
-        $loans = $em->getRepository(Loan::class)->findAll();
-        $array = [];
-        foreach ($loans as $p) array_push($array, NS::getLoan($p));
-        return new JR($array);
-    }
-
-    /**
      * @Route("", name="loan-create", methods={"POST"})
      *
      * @param Request $req

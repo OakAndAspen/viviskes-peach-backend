@@ -59,12 +59,12 @@ class ParticipationController extends AbstractController implements TokenAuthent
      */
     public function update(Request $req, EntityManagerInterface $em, $participationId)
     {
-        $b = $em->getRepository(Participation::class)->find($participationId);
-        if (!$b) return new JR("Participation not found", Response::HTTP_NOT_FOUND);
+        $participation = $em->getRepository(Participation::class)->find($participationId);
+        if (!$participation) return new JR("Participation not found", Response::HTTP_NOT_FOUND);
 
-        $participation = FormService::upsertParticipation($em, []);
+        $participation = FormService::upsertParticipation($em, [], $participation);
         if (is_string($participation)) return new JR($participation, Response::HTTP_BAD_REQUEST);
 
-        return new JR(NS::getParticipation($b));
+        return new JR(NS::getParticipation($participation));
     }
 }
