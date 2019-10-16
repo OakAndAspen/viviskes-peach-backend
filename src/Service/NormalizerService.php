@@ -233,9 +233,9 @@ class NormalizerService
             }
         }
 
-        if($parent) {
-            if($t->getEvent()) $data['event'] = self::getEvent($t->getEvent(), $u);
-            if($t->getCategory()) $data['category'] = self::getCategory($t->getCategory(), $u);
+        if ($parent) {
+            if ($t->getEvent()) $data['event'] = self::getEvent($t->getEvent(), $u);
+            if ($t->getCategory()) $data['category'] = self::getCategory($t->getCategory(), $u);
         }
 
         return $data;
@@ -247,8 +247,14 @@ class NormalizerService
             'id' => $u->getId(),
             'firstName' => $u->getFirstName(),
             'lastName' => $u->getLastName(),
-            'celticName' => $u->getCelticName()
+            'celticName' => $u->getCelticName(),
+            'avatar' => null
         ];
+
+        $imageUrl = "uploads/users/" . $u->getId() . ".jpg";
+        if (file_exists(__DIR__ . "/../../public/" . $imageUrl)) {
+            $data["avatar"] = $_ENV['SERVER_URL'] . $imageUrl;
+        }
 
         if ($details) {
             $data['email'] = $u->getEmail();

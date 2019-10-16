@@ -132,7 +132,7 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
         $topic = FormService::upsertTopic($em, $data, $topic);
         if (is_string($topic)) return new JR($topic, Response::HTTP_BAD_REQUEST);
 
-        return new JR(NS::getTopic($topic, $authUser, true));
+        return new JR(NS::getTopic($topic, $authUser, true, true));
     }
 
     /**

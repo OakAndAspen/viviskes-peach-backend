@@ -10,12 +10,12 @@ use App\Entity\Participation;
 use App\Entity\Partner;
 use App\Entity\Topic;
 use App\Entity\User;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use DateTime;
-use Exception;
 
 class MigrateCommand extends Command
 {

@@ -54,7 +54,10 @@ class PublicController extends AbstractController
         $jwt = US::generateJWT($user);
         $em->flush();
 
-        return new JR(['authKey' => $jwt]);
+        return new JR([
+            'authKey' => $jwt,
+            'user' => NS::getUser($user, true)
+        ]);
     }
 
     /**

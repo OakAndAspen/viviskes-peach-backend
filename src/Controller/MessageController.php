@@ -75,6 +75,8 @@ class MessageController extends AbstractController implements TokenAuthenticated
     }
 
     /**
+     * @Route("/{messageId}", name="message-update", methods={"PUT"})
+     *
      * @param Request $req
      * @param EntityManagerInterface $em
      * @param $messageId
