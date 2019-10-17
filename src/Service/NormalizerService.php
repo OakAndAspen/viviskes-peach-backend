@@ -34,6 +34,7 @@ class NormalizerService
             'author' => self::getUser($a->getAuthor()),
             'created' => US::datetimeToString($a->getCreated()),
             'edited' => US::datetimeToString($a->getEdited()),
+            'isPublished' => $a->getIsPublished(),
             'tags' => []
         ];
 
@@ -105,6 +106,7 @@ class NormalizerService
             'id' => $e->getId(),
             'title' => $e->getTitle(),
             'description' => $e->getDescription(),
+            'publicDescription' => $e->getPublicDescription(),
             'start' => US::datetimeToString($e->getStart()),
             'end' => US::datetimeToString($e->getEnd()),
             'location' => $e->getLocation(),

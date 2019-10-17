@@ -26,6 +26,7 @@ class FormService
         $authorId = isset($data["author"]) ? $data["author"] : null;
         $title = isset($data["title"]) ? $data["title"] : null;
         $content = isset($data["content"]) ? $data["content"] : null;
+        $isPublished = isset($data["isPublished"]) ? US::getBoolean($data["isPublished"]) : null;
 
         if (!$a) {
             if (!$authorId || !$title || !$content) return "Missing data";
@@ -33,11 +34,14 @@ class FormService
             if (!$author) return "Author not found";
 
             $a = new Article();
+            $a->setAuthor($author);
             $a->setCreated(new DateTime());
+            $a->setIsPublished(false);
         }
 
         if ($title) $a->setTitle($title);
         if ($content) $a->setContent($content);
+        if($isPublished !== null) $a->setIsPublished($isPublished);
         $a->setEdited(new DateTime());
 
         $em->persist($a);
@@ -108,6 +112,7 @@ class FormService
     {
         $title = isset($data["title"]) ? $data["title"] : null;
         $description = isset($data["description"]) ? $data["description"] : null;
+        $publicDescription = isset($data["publicDescription"]) ? $data["publicDescription"] : null;
         $start = isset($data["start"]) ? US::createDate($data["start"]) : null;
         if ($start === false) return "Start invalid";
         $end = isset($data["end"]) ? US::createDate($data["end"]) : null;
@@ -121,7 +126,8 @@ class FormService
         }
 
         if ($title) $e->setTitle($title);
-        if ($description) $e->setDescription($description);
+        if ($description !== null) $e->setDescription($description);
+        if ($publicDescription !== null) $e->setPublicDescription($publicDescription);
         if ($start) $e->setStart($start);
         if ($end) $e->setEnd($end);
         if ($location) $e->setLocation($location);

@@ -58,6 +58,11 @@ class Event
      */
     private $topics;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $publicDescription;
+
     public function __construct()
     {
         $this->participations = new ArrayCollection();
@@ -199,6 +204,18 @@ class Event
                 $topic->setEvent(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getPublicDescription(): ?string
+    {
+        return $this->publicDescription;
+    }
+
+    public function setPublicDescription(?string $publicDescription): self
+    {
+        $this->publicDescription = $publicDescription;
 
         return $this;
     }

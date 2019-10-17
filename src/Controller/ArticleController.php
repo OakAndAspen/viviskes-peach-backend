@@ -40,9 +40,11 @@ class ArticleController extends AbstractController implements TokenAuthenticated
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
+        $authUser = $req->get("authUser");
         $data = $req->get("article");
         if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
+        $data['author'] = $authUser->getId();
         $article = FormService::upsertArticle($em, $data);
         if (is_string($article)) return new JR($article, Response::HTTP_BAD_REQUEST);
 
@@ -60,7 +62,7 @@ class ArticleController extends AbstractController implements TokenAuthenticated
     {
         $article = $em->getRepository(Article::class)->find($articleId);
         if (!$article) return new JR("Article not found", Response::HTTP_NOT_FOUND);
-        return new JR(NS::getArticle($article, true), Response::HTTP_CREATED);
+        return new JR(NS::getArticle($article, true));
     }
 
     /**

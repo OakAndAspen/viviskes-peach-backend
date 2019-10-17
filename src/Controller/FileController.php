@@ -15,19 +15,18 @@ use Symfony\Component\Routing\Annotation\Route;
 class FileController extends AbstractController implements TokenAuthenticatedController
 {
     /**
-     * @Route("", name="files-upload", methods={"POST"})
+     * @Route("/forum", name="forum-upload", methods={"POST"})
      *
      * @param Request $req
      * @param EntityManagerInterface $em
      * @return JR
      */
-    public function upload(Request $req, EntityManagerInterface $em)
+    public function forumUpload(Request $req, EntityManagerInterface $em)
     {
-        $name = /*$req->get("name") ||*/
-            "coucou2.jpg";
+        $filename = uniqid() . ".jpg";
         $file = $req->files->get("file");
-        $url = "uploads\\" . $name;
+        $url = "uploads" . DIRECTORY_SEPARATOR . "forum" . DIRECTORY_SEPARATOR . $filename;
         move_uploaded_file($file, $url);
-        return new JsonResponse(["url" => "/uploads/" . $name . "?timestamp=" . mktime()]);
+        return new JsonResponse(["url" => $_ENV['SERVER_URL']."uploads/forum/" . $filename]);
     }
 }
