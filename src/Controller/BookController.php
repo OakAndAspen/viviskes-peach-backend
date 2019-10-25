@@ -19,9 +19,6 @@ class BookController extends AbstractController implements TokenAuthenticatedCon
 {
     /**
      * @Route("", name="book-index", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function index(EntityManagerInterface $em)
     {
@@ -33,10 +30,6 @@ class BookController extends AbstractController implements TokenAuthenticatedCon
 
     /**
      * @Route("", name="book-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -51,10 +44,6 @@ class BookController extends AbstractController implements TokenAuthenticatedCon
 
     /**
      * @Route("/{bookId}", name="book-show", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $bookId
-     * @return Response
      */
     public function show(EntityManagerInterface $em, $bookId)
     {
@@ -65,11 +54,6 @@ class BookController extends AbstractController implements TokenAuthenticatedCon
 
     /**
      * @Route("/{bookId}", name="book-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $bookId
-     * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $bookId)
     {
@@ -88,10 +72,6 @@ class BookController extends AbstractController implements TokenAuthenticatedCon
 
     /**
      * @Route("/{bookId}", name="book-delete", methods={"DELETE"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $bookId
-     * @return JR
      */
     public function delete(EntityManagerInterface $em, $bookId)
     {

@@ -19,9 +19,6 @@ class TagController extends AbstractController implements TokenAuthenticatedCont
 {
     /**
      * @Route("", name="tag-index", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function index(EntityManagerInterface $em)
     {
@@ -33,10 +30,6 @@ class TagController extends AbstractController implements TokenAuthenticatedCont
 
     /**
      * @Route("", name="tag-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -51,10 +44,6 @@ class TagController extends AbstractController implements TokenAuthenticatedCont
 
     /**
      * @Route("/{tagId}", name="tag-show", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $tagId
-     * @return Response
      */
     public function show(EntityManagerInterface $em, $tagId)
     {
@@ -65,11 +54,6 @@ class TagController extends AbstractController implements TokenAuthenticatedCont
 
     /**
      * @Route("/{tagId}", name="tag-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $tagId
-     * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $tagId)
     {
@@ -87,10 +71,6 @@ class TagController extends AbstractController implements TokenAuthenticatedCont
 
     /**
      * @Route("/{tagId}", name="tag-delete", methods={"DELETE"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $tagId
-     * @return JR
      */
     public function delete(EntityManagerInterface $em, $tagId)
     {

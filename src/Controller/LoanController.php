@@ -19,10 +19,6 @@ class LoanController extends AbstractController implements TokenAuthenticatedCon
 {
     /**
      * @Route("", name="loan-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -37,11 +33,6 @@ class LoanController extends AbstractController implements TokenAuthenticatedCon
 
     /**
      * @Route("/{loanId}", name="loan-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $loanId
-     * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $loanId)
     {
@@ -56,10 +47,6 @@ class LoanController extends AbstractController implements TokenAuthenticatedCon
 
     /**
      * @Route("/{loanId}", name="loan-delete", methods={"DELETE"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $loanId
-     * @return JR
      */
     public function delete(EntityManagerInterface $em, $loanId)
     {

@@ -19,9 +19,6 @@ class ParticipationController extends AbstractController implements TokenAuthent
 {
     /**
      * @Route("", name="participation-index", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function index(EntityManagerInterface $em)
     {
@@ -32,32 +29,9 @@ class ParticipationController extends AbstractController implements TokenAuthent
     }
 
     /**
-     * @Route("", name="participation-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
+     * @Route("/", name="participation-upsert", methods={"PUT"})
      */
-    public function create(Request $req, EntityManagerInterface $em)
-    {
-        $data = $req->get("participation");
-        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
-
-        $participation = FormService::upsertParticipation($em, $data);
-        if (is_string($participation)) return new JR($participation, Response::HTTP_BAD_REQUEST);
-
-        return new JR(NS::getParticipation($participation), Response::HTTP_CREATED);
-    }
-
-    /**
-     * @Route("/{participationId}", name="participation-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $participationId
-     * @return JR
-     */
-    public function update(Request $req, EntityManagerInterface $em, $participationId)
+    public function upsert(Request $req, EntityManagerInterface $em, $participationId)
     {
         $participation = $em->getRepository(Participation::class)->find($participationId);
         if (!$participation) return new JR("Participation not found", Response::HTTP_NOT_FOUND);

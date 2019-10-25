@@ -5,7 +5,6 @@ namespace App\Controller;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -16,10 +15,6 @@ class FileController extends AbstractController implements TokenAuthenticatedCon
 {
     /**
      * @Route("/forum", name="forum-upload", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function forumUpload(Request $req, EntityManagerInterface $em)
     {

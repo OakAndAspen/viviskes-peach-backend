@@ -6,7 +6,6 @@ use App\Entity\Folder;
 use App\Service\FormService;
 use App\Service\NormalizerService as NS;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,9 +20,6 @@ class FolderController extends AbstractController implements TokenAuthenticatedC
 {
     /**
      * @Route("", name="folder-index", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function index(EntityManagerInterface $em)
     {
@@ -35,11 +31,6 @@ class FolderController extends AbstractController implements TokenAuthenticatedC
 
     /**
      * @Route("", name="folder-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
-     * @throws Exception
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -54,10 +45,6 @@ class FolderController extends AbstractController implements TokenAuthenticatedC
 
     /**
      * @Route("/download/{folderId}", name="folder-download", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $folderId
-     * @return JR|Response
      */
     public function download(EntityManagerInterface $em, $folderId)
     {
@@ -87,10 +74,6 @@ class FolderController extends AbstractController implements TokenAuthenticatedC
 
     /**
      * @Route("/{folderId}", name="folder-show", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $folderId
-     * @return JR
      */
     public function show(EntityManagerInterface $em, $folderId)
     {
@@ -101,11 +84,6 @@ class FolderController extends AbstractController implements TokenAuthenticatedC
 
     /**
      * @Route("/{folderId}", name="folder-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $folderId
-     * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $folderId)
     {
@@ -123,10 +101,6 @@ class FolderController extends AbstractController implements TokenAuthenticatedC
 
     /**
      * @Route("/{folderId}", name="folder-delete", methods={"DELETE"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $folderId
-     * @return JR
      */
     public function delete(EntityManagerInterface $em, $folderId)
     {

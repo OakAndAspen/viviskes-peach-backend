@@ -6,9 +6,7 @@ use App\Entity\Document;
 use App\Service\FormService;
 use App\Service\NormalizerService as NS;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,9 +19,6 @@ class DocumentController extends AbstractController implements TokenAuthenticate
 {
     /**
      * @Route("", name="document-index", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function index(EntityManagerInterface $em)
     {
@@ -35,11 +30,6 @@ class DocumentController extends AbstractController implements TokenAuthenticate
 
     /**
      * @Route("", name="document-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
-     * @throws Exception
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -59,10 +49,6 @@ class DocumentController extends AbstractController implements TokenAuthenticate
 
     /**
      * @Route("/download/{documentId}", name="document-download", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $documentId
-     * @return BinaryFileResponse|JR
      */
     public function download(EntityManagerInterface $em, $documentId)
     {
@@ -77,10 +63,6 @@ class DocumentController extends AbstractController implements TokenAuthenticate
 
     /**
      * @Route("/{documentId}", name="document-show", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $documentId
-     * @return JR
      */
     public function show(EntityManagerInterface $em, $documentId)
     {
@@ -91,11 +73,6 @@ class DocumentController extends AbstractController implements TokenAuthenticate
 
     /**
      * @Route("/{documentId}", name="document-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $documentId
-     * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $documentId)
     {
@@ -113,10 +90,6 @@ class DocumentController extends AbstractController implements TokenAuthenticate
 
     /**
      * @Route("/{documentId}", name="document-delete", methods={"DELETE"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $documentId
-     * @return JR
      */
     public function delete(EntityManagerInterface $em, $documentId)
     {

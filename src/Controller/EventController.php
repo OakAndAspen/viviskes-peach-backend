@@ -6,7 +6,6 @@ use App\Entity\Event;
 use App\Service\FormService;
 use App\Service\NormalizerService as NS;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,10 +19,6 @@ class EventController extends AbstractController implements TokenAuthenticatedCo
 {
     /**
      * @Route("", name="event-index", methods={"GET"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function index(Request $req, EntityManagerInterface $em)
     {
@@ -36,11 +31,6 @@ class EventController extends AbstractController implements TokenAuthenticatedCo
 
     /**
      * @Route("", name="event-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
-     * @throws Exception
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -55,11 +45,6 @@ class EventController extends AbstractController implements TokenAuthenticatedCo
 
     /**
      * @Route("/{eventId}", name="event-show", methods={"GET"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $eventId
-     * @return JR
      */
     public function show(Request $req, EntityManagerInterface $em, $eventId)
     {
@@ -70,12 +55,6 @@ class EventController extends AbstractController implements TokenAuthenticatedCo
 
     /**
      * @Route("/{eventId}", name="event-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $eventId
-     * @return JR
-     * @throws Exception
      */
     public function update(Request $req, EntityManagerInterface $em, $eventId)
     {
@@ -93,10 +72,6 @@ class EventController extends AbstractController implements TokenAuthenticatedCo
 
     /**
      * @Route("/{eventId}", name="event-delete", methods={"DELETE"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $eventId
-     * @return JR
      */
     public function delete(EntityManagerInterface $em, $eventId)
     {

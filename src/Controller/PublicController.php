@@ -17,10 +17,6 @@ class PublicController extends AbstractController
 {
     /**
      * @Route("/debug", name="debug", methods="GET")
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function debug(Request $req, EntityManagerInterface $em) {
         $password = "password";
@@ -29,10 +25,6 @@ class PublicController extends AbstractController
 
     /**
      * @Route("/login", name="public-login", methods="POST")
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function login(Request $req, EntityManagerInterface $em)
     {
@@ -62,10 +54,6 @@ class PublicController extends AbstractController
 
     /**
      * @Route("/public/members", name="public-members", methods="GET")
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function getMembers(Request $req, EntityManagerInterface $em) {
         $data = [];
@@ -83,9 +71,6 @@ class PublicController extends AbstractController
 
     /**
      * @Route("/public/partners", name="public-partners", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function getPartners(EntityManagerInterface $em)
     {
@@ -97,9 +82,6 @@ class PublicController extends AbstractController
 
     /**
      * @Route("/public/events", name="public-events", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function getEvents(EntityManagerInterface $em)
     {

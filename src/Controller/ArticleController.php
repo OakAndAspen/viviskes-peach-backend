@@ -19,9 +19,6 @@ class ArticleController extends AbstractController implements TokenAuthenticated
 {
     /**
      * @Route("", name="article-index", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function index(EntityManagerInterface $em)
     {
@@ -33,10 +30,6 @@ class ArticleController extends AbstractController implements TokenAuthenticated
 
     /**
      * @Route("", name="article-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -53,10 +46,6 @@ class ArticleController extends AbstractController implements TokenAuthenticated
 
     /**
      * @Route("/{articleId}", name="article-show", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $articleId
-     * @return Response
      */
     public function show(EntityManagerInterface $em, $articleId)
     {
@@ -67,11 +56,6 @@ class ArticleController extends AbstractController implements TokenAuthenticated
 
     /**
      * @Route("/{articleId}", name="article-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $articleId
-     * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $articleId)
     {
@@ -89,10 +73,6 @@ class ArticleController extends AbstractController implements TokenAuthenticated
 
     /**
      * @Route("/{articleId}", name="article-delete", methods={"DELETE"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $articleId
-     * @return JR
      */
     public function delete(EntityManagerInterface $em, $articleId)
     {

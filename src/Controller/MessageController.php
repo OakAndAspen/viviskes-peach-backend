@@ -20,9 +20,6 @@ class MessageController extends AbstractController implements TokenAuthenticated
 {
     /**
      * @Route("", name="message-index", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function index(EntityManagerInterface $em)
     {
@@ -34,10 +31,6 @@ class MessageController extends AbstractController implements TokenAuthenticated
 
     /**
      * @Route("", name="message-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -62,10 +55,6 @@ class MessageController extends AbstractController implements TokenAuthenticated
 
     /**
      * @Route("/{messageId}", name="message-show", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $messageId
-     * @return Response
      */
     public function show(EntityManagerInterface $em, $messageId)
     {
@@ -76,11 +65,6 @@ class MessageController extends AbstractController implements TokenAuthenticated
 
     /**
      * @Route("/{messageId}", name="message-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $messageId
-     * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $messageId)
     {
@@ -106,10 +90,6 @@ class MessageController extends AbstractController implements TokenAuthenticated
 
     /**
      * @Route("/{messageId}", name="message-delete", methods={"DELETE"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $messageId
-     * @return JR
      */
     public function delete(EntityManagerInterface $em, $messageId)
     {

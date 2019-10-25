@@ -19,10 +19,6 @@ class CategoryController extends AbstractController implements TokenAuthenticate
 {
     /**
      * @Route("", name="category-index", methods={"GET"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function index(Request $req, EntityManagerInterface $em)
     {
@@ -35,10 +31,6 @@ class CategoryController extends AbstractController implements TokenAuthenticate
 
     /**
      * @Route("", name="category-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -53,11 +45,6 @@ class CategoryController extends AbstractController implements TokenAuthenticate
 
     /**
      * @Route("/{categoryId}", name="category-show", methods={"GET"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $categoryId
-     * @return JR
      */
     public function show(Request $req, EntityManagerInterface $em, $categoryId)
     {
@@ -69,11 +56,6 @@ class CategoryController extends AbstractController implements TokenAuthenticate
 
     /**
      * @Route("/{categoryId}", name="category-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $categoryId
-     * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $categoryId)
     {
@@ -91,10 +73,6 @@ class CategoryController extends AbstractController implements TokenAuthenticate
 
     /**
      * @Route("/{categoryId}", name="category-delete", methods={"DELETE"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $categoryId
-     * @return JR
      */
     public function delete(EntityManagerInterface $em, $categoryId)
     {

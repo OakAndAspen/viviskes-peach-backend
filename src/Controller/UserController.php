@@ -19,9 +19,6 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
 {
     /**
      * @Route("", name="user-index", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function index(EntityManagerInterface $em)
     {
@@ -33,10 +30,6 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
 
     /**
      * @Route("", name="user-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -51,10 +44,6 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
 
     /**
      * @Route("/{userId}", name="user-show", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $userId
-     * @return JR
      */
     public function show(EntityManagerInterface $em, $userId)
     {
@@ -65,9 +54,6 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
 
     /**
      * @Route("/image", name="user-update-image", methods={"POST"})
-     *
-     * @param Request $req
-     * @return JR
      */
     public function updateImage(Request $req)
     {
@@ -81,11 +67,6 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
 
     /**
      * @Route("/{userId}", name="user-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $userId
-     * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $userId)
     {
@@ -103,10 +84,6 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
 
     /**
      * @Route("/{userId}", name="user-delete", methods={"DELETE"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $userId
-     * @return JR
      */
     public function delete(EntityManagerInterface $em, $userId)
     {

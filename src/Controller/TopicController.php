@@ -9,7 +9,6 @@ use App\Service\FormService;
 use App\Service\NormalizerService as NS;
 use App\Service\UtilityService as US;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,10 +22,6 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
 {
     /**
      * @Route("", name="topic-index", methods={"GET"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function index(Request $req, EntityManagerInterface $em)
     {
@@ -72,11 +67,6 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
 
     /**
      * @Route("", name="topic-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
-     * @throws Exception
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -92,11 +82,6 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
 
     /**
      * @Route("/{topicId}", name="topic-show", methods={"GET"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $topicId
-     * @return JR
      */
     public function show(Request $req, EntityManagerInterface $em, $topicId)
     {
@@ -114,11 +99,6 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
 
     /**
      * @Route("/{topicId}", name="topic-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $topicId
-     * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $topicId)
     {
@@ -137,10 +117,6 @@ class TopicController extends AbstractController implements TokenAuthenticatedCo
 
     /**
      * @Route("/{topicId}", name="topic-delete", methods={"DELETE"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $topicId
-     * @return JR
      */
     public function delete(EntityManagerInterface $em, $topicId)
     {

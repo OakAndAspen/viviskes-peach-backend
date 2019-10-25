@@ -19,9 +19,6 @@ class PartnerController extends AbstractController implements TokenAuthenticated
 {
     /**
      * @Route("", name="partner-index", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function index(EntityManagerInterface $em)
     {
@@ -33,10 +30,6 @@ class PartnerController extends AbstractController implements TokenAuthenticated
 
     /**
      * @Route("", name="partner-create", methods={"POST"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @return JR
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
@@ -51,10 +44,6 @@ class PartnerController extends AbstractController implements TokenAuthenticated
 
     /**
      * @Route("/{partnerId}", name="partner-show", methods={"GET"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $partnerId
-     * @return Response
      */
     public function show(EntityManagerInterface $em, $partnerId)
     {
@@ -65,11 +54,6 @@ class PartnerController extends AbstractController implements TokenAuthenticated
 
     /**
      * @Route("/{partnerId}", name="partner-update", methods={"PUT"})
-     *
-     * @param Request $req
-     * @param EntityManagerInterface $em
-     * @param $partnerId
-     * @return JR
      */
     public function update(Request $req, EntityManagerInterface $em, $partnerId)
     {
@@ -87,10 +71,6 @@ class PartnerController extends AbstractController implements TokenAuthenticated
 
     /**
      * @Route("/{partnerId}", name="partner-delete", methods={"DELETE"})
-     *
-     * @param EntityManagerInterface $em
-     * @param $partnerId
-     * @return JR
      */
     public function delete(EntityManagerInterface $em, $partnerId)
     {
