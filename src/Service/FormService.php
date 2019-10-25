@@ -41,7 +41,7 @@ class FormService
 
         if ($title) $a->setTitle($title);
         if ($content) $a->setContent($content);
-        if($isPublished !== null) $a->setIsPublished($isPublished);
+        if ($isPublished !== null) $a->setIsPublished($isPublished);
         $a->setEdited(new DateTime());
 
         $em->persist($a);
@@ -212,7 +212,7 @@ class FormService
         return $m;
     }
 
-    public static function upsertParticipation(EntityManagerInterface $em, $data, Participation $p = null)
+    public static function upsertParticipation(EntityManagerInterface $em, $data)
     {
         $eventId = isset($data["event"]) ? $data["event"] : null;
         $userId = isset($data["user"]) ? $data["user"] : null;
@@ -220,19 +220,25 @@ class FormService
         if ($day === false) return "Day invalid";
         $status = isset($data["status"]) ? $data["status"] : null;
 
-        if (!$p) {
-            if (!$eventId || !$userId || !$day || !$status) return "Missing data";
-            $user = $em->getRepository(User::class)->find($userId);
-            $event = $em->getRepository(Event::class)->find($eventId);
-            if (!$user || !$event) return "User or event not found";
+        if (!$eventId || !$userId || !$day || !$status) return "Missing data";
+        $user = $em->getRepository(User::class)->find($userId);
+        $event = $em->getRepository(Event::class)->find($eventId);
+        if (!$user || !$event) return "User or event not found";
 
+        $p = $em->getRepository(Participation::class)->findOneBy([
+            "event" => $event,
+            "user" => $user,
+            "day" => $day
+        ]);
+
+        if (!$p) {
             $p = new Participation();
             $p->setUser($user);
             $p->setEvent($event);
             $p->setDay($day);
         }
 
-        if ($status) $p->setStatus($status);
+        $p->setStatus($status);
 
         $em->persist($p);
         $em->flush();

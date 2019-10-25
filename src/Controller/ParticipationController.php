@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Event;
 use App\Entity\Participation;
+use App\Entity\User;
 use App\Service\FormService;
 use App\Service\NormalizerService as NS;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,14 +31,15 @@ class ParticipationController extends AbstractController implements TokenAuthent
     }
 
     /**
-     * @Route("/", name="participation-upsert", methods={"PUT"})
+     * @Route("", name="participation-upsert", methods={"POST"})
      */
-    public function upsert(Request $req, EntityManagerInterface $em, $participationId)
+    public function upsert(Request $req, EntityManagerInterface $em)
     {
-        $participation = $em->getRepository(Participation::class)->find($participationId);
-        if (!$participation) return new JR("Participation not found", Response::HTTP_NOT_FOUND);
+        //$authUser = $req->get("authUser");
+        $data = $req->get("participation");
+        if (!$data) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
-        $participation = FormService::upsertParticipation($em, [], $participation);
+        $participation = FormService::upsertParticipation($em, $data);
         if (is_string($participation)) return new JR($participation, Response::HTTP_BAD_REQUEST);
 
         return new JR(NS::getParticipation($participation));
