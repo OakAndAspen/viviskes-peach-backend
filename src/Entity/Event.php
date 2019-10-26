@@ -63,10 +63,16 @@ class Event
      */
     private $publicDescription;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Photo", mappedBy="event", orphanRemoval=true)
+     */
+    private $photos;
+
     public function __construct()
     {
         $this->participations = new ArrayCollection();
         $this->topics = new ArrayCollection();
+        $this->photos = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -216,6 +222,37 @@ class Event
     public function setPublicDescription(?string $publicDescription): self
     {
         $this->publicDescription = $publicDescription;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Photo[]
+     */
+    public function getPhotos(): Collection
+    {
+        return $this->photos;
+    }
+
+    public function addPhoto(Photo $photo): self
+    {
+        if (!$this->photos->contains($photo)) {
+            $this->photos[] = $photo;
+            $photo->setEvent($this);
+        }
+
+        return $this;
+    }
+
+    public function removePhoto(Photo $photo): self
+    {
+        if ($this->photos->contains($photo)) {
+            $this->photos->removeElement($photo);
+            // set the owning side to null (unless already changed)
+            if ($photo->getEvent() === $this) {
+                $photo->setEvent(null);
+            }
+        }
 
         return $this;
     }

@@ -22,6 +22,6 @@ class FileController extends AbstractController implements TokenAuthenticatedCon
         $file = $req->files->get("file");
         $url = "uploads" . DIRECTORY_SEPARATOR . "forum" . DIRECTORY_SEPARATOR . $filename;
         move_uploaded_file($file, $url);
-        return new JsonResponse(["url" => $_ENV['SERVER_URL']."uploads/forum/" . $filename]);
+        return new JsonResponse(["url" => $_ENV['SERVER_URL'] . "uploads/forum/" . $filename]);
     }
 }

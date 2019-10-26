@@ -12,6 +12,7 @@ use App\Entity\Loan;
 use App\Entity\Message;
 use App\Entity\Participation;
 use App\Entity\Partner;
+use App\Entity\Photo;
 use App\Entity\Tag;
 use App\Entity\Topic;
 use App\Entity\User;
@@ -257,6 +258,22 @@ class FormService
 
         if ($label) $p->setLabel($label);
         if ($url) $p->setUrl($url);
+
+        $em->persist($p);
+        $em->flush();
+        return $p;
+    }
+
+    public static function upsertPhoto(EntityManagerInterface $em, $data)
+    {
+        $eventId = isset($data["event"]) ? $data["event"] : null;
+
+        if (!$eventId) return "Missing data";
+        $event = $em->getRepository(Event::class)->find($eventId);
+        if (!$event) return "Event not found";
+
+        $p = new Photo();
+        $p->setEvent($event);
 
         $em->persist($p);
         $em->flush();

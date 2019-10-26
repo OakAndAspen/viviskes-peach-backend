@@ -50,7 +50,7 @@ class EventController extends AbstractController implements TokenAuthenticatedCo
     {
         $e = $em->getRepository(Event::class)->find($eventId);
         if(!$e) return new JR("Event not found", Response::HTTP_NOT_FOUND);
-        return new JR(NS::getEvent($e, $req->get("authUser"), true, true));
+        return new JR(NS::getEvent($e, $req->get("authUser"), true, true, true));
     }
 
     /**

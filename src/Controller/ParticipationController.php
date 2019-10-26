@@ -2,9 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Event;
 use App\Entity\Participation;
-use App\Entity\User;
 use App\Service\FormService;
 use App\Service\NormalizerService as NS;
 use Doctrine\ORM\EntityManagerInterface;

@@ -12,6 +12,7 @@ use App\Entity\Loan;
 use App\Entity\Message;
 use App\Entity\Participation;
 use App\Entity\Partner;
+use App\Entity\Photo;
 use App\Entity\Tag;
 use App\Entity\Topic;
 use App\Entity\User;
@@ -100,7 +101,7 @@ class NormalizerService
         ];
     }
 
-    public static function getEvent(Event $e, User $u, $participations = false, $topics = false)
+    public static function getEvent(Event $e, User $u, $participations = false, $topics = false, $photos = false)
     {
         $data = [
             'id' => $e->getId(),
@@ -133,6 +134,13 @@ class NormalizerService
             $data['topics'] = [];
             foreach ($e->getTopics() as $t) {
                 array_push($data['topics'], self::getTopic($t, $u));
+            }
+        }
+
+        if ($photos) {
+            $data['photos'] = [];
+            foreach ($e->getPhotos() as $p) {
+                array_push($data['photos'], self::getPhoto($p));
             }
         }
 
@@ -205,6 +213,14 @@ class NormalizerService
             'id' => $p->getId(),
             'label' => $p->getLabel(),
             'url' => $p->getUrl()
+        ];
+    }
+
+    public static function getPhoto(Photo $p)
+    {
+        return [
+            'id' => $p->getId(),
+            'url' => $_ENV['SERVER_URL'] . "uploads/gallery/" . $p->getId() . ".jpg"
         ];
     }
 
