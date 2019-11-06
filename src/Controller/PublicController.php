@@ -88,15 +88,23 @@ class PublicController extends AbstractController
         $events = $em->getRepository(Event::class)->findAll();
         $data = [];
 
-        foreach ($events as $e) array_push($data, [
-            'id' => $e->getId(),
-            'title' => $e->getTitle(),
-            'description' => $e->getDescription(),
-            'start' => US::datetimeToString($e->getStart()),
-            'end' => US::datetimeToString($e->getEnd()),
-            'location' => $e->getLocation(),
-            'privacy' => $e->getPrivacy()
-        ]);
+        foreach ($events as $e) {
+            $eventData = [
+                'id' => $e->getId(),
+                'title' => $e->getTitle(),
+                'description' => $e->getDescription(),
+                'start' => US::datetimeToString($e->getStart()),
+                'end' => US::datetimeToString($e->getEnd()),
+                'location' => $e->getLocation(),
+                'privacy' => $e->getPrivacy(),
+                'photos' => []
+            ];
+
+            foreach ($e->getPhotos() as $p) {
+                array_push($eventData['photos'], NS::getPhoto($p));
+            }
+            array_push($data, $eventData);
+        }
 
         return new JR($data);
     }

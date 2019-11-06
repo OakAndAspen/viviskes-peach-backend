@@ -342,6 +342,7 @@ class FormService
         $npa = isset($data["npa"]) ? $data["npa"] : null;
         $city = isset($data["city"]) ? $data["city"] : null;
         $mentorId = isset($data["mentor"]) ? $data["mentor"] : null;
+        $newbieId = isset($data["newbie"]) ? $data["newbie"] : null;
         $password = isset($data["password"]) ? $data["password"] : null;
         $oldPassword = isset($data["oldPassword"]) ? $data["oldPassword"] : null;
         $newPassword = isset($data["newPassword"]) ? $data["newPassword"] : null;
@@ -366,6 +367,11 @@ class FormService
             $mentor = $em->getRepository(User::class)->find($mentorId);
             if (!$mentor) return "Mentor not found";
             $u->setMentor($mentor);
+        }
+        if ($newbieId) {
+            $newbie = $em->getRepository(User::class)->find($newbieId);
+            if (!$newbie) return "Newbie not found";
+            $u->setNewbie($newbie);
         }
         if ($newPassword || $oldPassword) {
             if (!$u || !$newPassword || !$oldPassword) return "Missing data";
