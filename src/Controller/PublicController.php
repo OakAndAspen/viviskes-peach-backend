@@ -97,6 +97,7 @@ class PublicController extends AbstractController
                 'end' => US::datetimeToString($e->getEnd()),
                 'location' => $e->getLocation(),
                 'privacy' => $e->getPrivacy(),
+                'isConfirmed' => $e->getIsConfirmed(),
                 'photos' => []
             ];
 

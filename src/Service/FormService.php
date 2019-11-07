@@ -120,6 +120,7 @@ class FormService
         if ($end === false) return "End invalid";
         $location = isset($data["location"]) ? $data["location"] : null;
         $privacy = isset($data["privacy"]) ? $data["privacy"] : null;
+        $isConfirmed = isset($data["isConfirmed"]) ? US::getBoolean($data["isConfirmed"]) : null;
 
         if (!$e) {
             if (!$title || !$privacy) return "Missing data";
@@ -133,6 +134,7 @@ class FormService
         if ($end) $e->setEnd($end);
         if ($location) $e->setLocation($location);
         if ($privacy) $e->setPrivacy($privacy);
+        if ($isConfirmed !== null) $e->setIsConfirmed($isConfirmed);
 
         $em->persist($e);
         $em->flush();

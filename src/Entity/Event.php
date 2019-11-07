@@ -68,6 +68,11 @@ class Event
      */
     private $photos;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isConfirmed;
+
     public function __construct()
     {
         $this->participations = new ArrayCollection();
@@ -253,6 +258,18 @@ class Event
                 $photo->setEvent(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getIsConfirmed(): ?bool
+    {
+        return $this->isConfirmed;
+    }
+
+    public function setIsConfirmed(bool $isConfirmed): self
+    {
+        $this->isConfirmed = $isConfirmed;
 
         return $this;
     }

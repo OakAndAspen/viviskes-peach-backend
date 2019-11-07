@@ -112,7 +112,8 @@ class NormalizerService
             'end' => US::datetimeToString($e->getEnd()),
             'location' => $e->getLocation(),
             'privacy' => $e->getPrivacy(),
-            'read' => true
+            'read' => true,
+            'isConfirmed' => $e->getIsConfirmed()
         ];
 
         foreach ($e->getTopics() as $t) {
