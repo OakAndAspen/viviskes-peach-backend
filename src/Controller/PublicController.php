@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class PublicController extends AbstractController
@@ -18,7 +19,8 @@ class PublicController extends AbstractController
     /**
      * @Route("/debug", name="debug", methods="GET")
      */
-    public function debug(Request $req, EntityManagerInterface $em) {
+    public function debug(Request $req, EntityManagerInterface $em)
+    {
         $password = "password";
         return new JR(password_hash($password, PASSWORD_BCRYPT));
     }
@@ -29,17 +31,16 @@ class PublicController extends AbstractController
     public function login(Request $req, EntityManagerInterface $em)
     {
         if (!$req->get('email') || !$req->get('password')) {
-            return new JR(['loginMissingData']);
+            return new JR('Missing data', Response::HTTP_BAD_REQUEST);
         }
 
-        $user = $em->getRepository(User::class)->findOneBy([
-            'email' => $req->get('email')
-        ]);
+        $user = $em->getRepository(User::class)->findOneBy(['email' => $req->get('email')]);
 
-        if (!$user) return new JR(['userNotFound']);
+        if (!$user) return new JR("User not found", Response::HTTP_NOT_FOUND);
+        if ($user->getIsArchived()) return new JR("User is archived", Response::HTTP_FORBIDDEN);
 
         if (!password_verify($req->get('password'), $user->getPassword())) {
-            return new JR(['loginPwIncorrect'], 400);
+            return new JR("Password incorrect", Response::HTTP_BAD_REQUEST);
         }
 
         // Create a JWT
@@ -55,14 +56,15 @@ class PublicController extends AbstractController
     /**
      * @Route("/public/members", name="public-members", methods="GET")
      */
-    public function getMembers(Request $req, EntityManagerInterface $em) {
+    public function getMembers(Request $req, EntityManagerInterface $em)
+    {
         $data = [];
-        foreach($em->getRepository(User::class)->findAll() as $u) {
-            if($u->getCelticName()) {
+        foreach ($em->getRepository(User::class)->findAll() as $u) {
+            if ($u->getCelticName() && !$u->getIsArchived()) {
                 array_push($data, [
                     "id" => $u->getId(),
                     "celticName" => $u->getCelticName(),
-                    "hasPhoto" => file_exists("uploads\\users\\".$u->getId().".jpg")
+                    "hasPhoto" => file_exists("uploads\\users\\" . $u->getId() . ".jpg")
                 ]);
             }
         }

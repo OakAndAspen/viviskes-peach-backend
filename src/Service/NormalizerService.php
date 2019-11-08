@@ -281,6 +281,7 @@ class NormalizerService
             $data['isActive'] = $u->getIsActive();
             $data['isFighting'] = $u->getIsFighting();
             $data['isAdmin'] = $u->getIsAdmin();
+            $data['isArchived'] = $u->getIsArchived();
             $data['address'] = $u->getAddress();
             $data['npa'] = $u->getNpa();
             $data['city'] = $u->getCity();

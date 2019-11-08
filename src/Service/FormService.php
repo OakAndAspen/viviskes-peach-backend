@@ -338,6 +338,7 @@ class FormService
         $isAdmin = isset($data["isAdmin"]) ? US::getBoolean($data["isAdmin"]) : null;
         $isFighting = isset($data["isFighting"]) ? US::getBoolean($data["isFighting"]) : null;
         $isActive = isset($data["isActive"]) ? US::getBoolean($data["isActive"]) : null;
+        $isArchived = isset($data["isArchived"]) ? US::getBoolean($data["isArchived"]) : null;
         $email = isset($data["email"]) ? $data["email"] : null;
         $phone = isset($data["phone"]) ? $data["phone"] : null;
         $address = isset($data["address"]) ? $data["address"] : null;
@@ -357,10 +358,12 @@ class FormService
 
         if ($firstName) $u->setFirstName($firstName);
         if ($lastName) $u->setLastName($lastName);
+        if ($email) $u->setEmail($email);
         if ($celticName !== null) $u->setCelticName($celticName);
         if ($isAdmin !== null) $u->setIsAdmin($isAdmin);
         if ($isFighting !== null) $u->setIsFighting($isFighting);
         if ($isActive !== null) $u->setIsActive($isActive);
+        if ($isArchived !== null) $u->setIsArchived($isArchived);
         if ($phone !== null) $u->setPhone($phone);
         if ($address !== null) $u->setAddress($address);
         if ($npa !== null) $u->setNpa($npa);

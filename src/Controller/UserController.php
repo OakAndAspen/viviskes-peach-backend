@@ -24,7 +24,11 @@ class UserController extends AbstractController implements TokenAuthenticatedCon
     {
         $users = $em->getRepository(User::class)->findAll();
         $data = [];
-        foreach ($users as $p) array_push($data, NS::getUser($p, true));
+        foreach ($users as $u) {
+            if(!$u->getIsArchived()) {
+                array_push($data, NS::getUser($u, true));
+            }
+        }
         return new JR($data);
     }
 

@@ -108,8 +108,18 @@ class User
      */
     private $isFighting;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isArchived;
+
     public function __construct()
     {
+        $this->setIsAdmin(false);
+        $this->setIsArchived(false);
+        $this->setIsActive(false);
+        $this->setIsFighting(false);
+
         $this->articles = new ArrayCollection();
         $this->loans = new ArrayCollection();
         $this->participations = new ArrayCollection();
@@ -410,6 +420,18 @@ class User
     public function setIsFighting(bool $isFighting): self
     {
         $this->isFighting = $isFighting;
+
+        return $this;
+    }
+
+    public function getIsArchived(): ?bool
+    {
+        return $this->isArchived;
+    }
+
+    public function setIsArchived(bool $isArchived): self
+    {
+        $this->isArchived = $isArchived;
 
         return $this;
     }
