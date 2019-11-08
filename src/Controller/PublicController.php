@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Article;
 use App\Entity\Event;
 use App\Entity\Partner;
+use App\Entity\Tag;
 use App\Entity\User;
 use App\Service\NormalizerService as NS;
 use App\Service\UtilityService as US;
@@ -110,5 +112,37 @@ class PublicController extends AbstractController
         }
 
         return new JR($data);
+    }
+
+    /**
+     * @Route("/public/tags", name="public-tags", methods={"GET"})
+     */
+    public function getTags(EntityManagerInterface $em)
+    {
+        $tags = $em->getRepository(Tag::class)->findAll();
+        $array = [];
+        foreach ($tags as $p) array_push($array, NS::getTag($p));
+        return new JR($array);
+    }
+
+    /**
+     * @Route("/public/articles", name="public-articles", methods={"GET"})
+     */
+    public function getArticles(EntityManagerInterface $em)
+    {
+        $articles = $em->getRepository(Article::class)->findAll();
+        $array = [];
+        foreach ($articles as $a) array_push($array, NS::getArticle($a));
+        return new JR($array);
+    }
+
+    /**
+     * @Route("/public/articles/{id}", name="public-article", methods={"GET"})
+     */
+    public function getArticle(EntityManagerInterface $em, $id)
+    {
+        $article = $em->getRepository(Article::class)->find($id);
+        if(!$article) return new JR("Article not found", Response::HTTP_NOT_FOUND);
+        return new JR(NS::getArticle($article, true));
     }
 }

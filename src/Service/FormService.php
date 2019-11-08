@@ -27,6 +27,8 @@ class FormService
         $authorId = isset($data["author"]) ? $data["author"] : null;
         $title = isset($data["title"]) ? $data["title"] : null;
         $content = isset($data["content"]) ? $data["content"] : null;
+        $tags = isset($data["tags"]) ? $data["tags"] : null;
+        if(!is_array($tags)) $tags = null;
         $isPublished = isset($data["isPublished"]) ? US::getBoolean($data["isPublished"]) : null;
 
         if (!$a) {
@@ -38,6 +40,15 @@ class FormService
             $a->setAuthor($author);
             $a->setCreated(new DateTime());
             $a->setIsPublished(false);
+        }
+
+        if($tags !== null) {
+            foreach ($a->getTags() as $tag) $a->removeTag($tag);
+            foreach ($tags as $tagId) {
+                $tag = $em->getRepository(Tag::class)->find($tagId);
+                if(!$tag) return "Tag not found";
+                $a->addTag($tag);
+            }
         }
 
         if ($title) $a->setTitle($title);
