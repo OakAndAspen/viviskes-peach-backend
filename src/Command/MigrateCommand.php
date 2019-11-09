@@ -90,6 +90,7 @@ class MigrateCommand extends Command
             $event->setTitle($e['title']);
             $event->setDescription($e['description']);
             $event->setLocation($e['location']);
+            $event->setIsConfirmed(true);
             $event->setPrivacy($e['public'] === "1" ? "u" : "i");
             try {
                 $event->setStart(new DateTime($e['startDate']));
@@ -118,12 +119,15 @@ class MigrateCommand extends Command
             $e = $this->findNewEvent($p['eventId'], $oldEvents, $newEvents);
 
             if ($u && $e) {
-                $participation = new Participation();
-                $participation->setUser($u);
-                $participation->setEvent($e);
-                $participation->setDay($e->getStart());
-                $participation->setStatus($p['participation']);
-                $this->em->persist($participation);
+                $status = $p['participation'];
+                if($status !== "u") {
+                    $participation = new Participation();
+                    $participation->setUser($u);
+                    $participation->setEvent($e);
+                    $participation->setDay($e->getStart());
+                    $participation->setStatus($p['participation']);
+                    $this->em->persist($participation);
+                }
             }
         }
 
@@ -195,6 +199,7 @@ class MigrateCommand extends Command
             $timestamp = new DateTime($a['date']);
             $article->setCreated($timestamp);
             $article->setEdited($timestamp);
+            $article->setIsPublished(false);
             $article->setAuthor($author);
 
             $this->em->persist($article);
@@ -215,7 +220,6 @@ class MigrateCommand extends Command
 
         $this->em->flush();
     }
-
 
     /**
      * @param $id
