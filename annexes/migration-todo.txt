@@ -1,30 +1,26 @@
 Samedi 9.11
 
-- Corriger les erreurs et warnings
-
-- Exporter la base de donnée d'Infomaniak en array PHP --> dossier annexes/migration-data
-- Backupper la base de donnée d'Infomaniak (en SQL)
-- Vider la base de données de prod (y compris la structure)
-- Récupérer photos
+Migration
+o Exporter la base de donnée d'Infomaniak en array PHP --> dossier annexes/migration-data
+o Backupper la base de donnée d'Infomaniak (en SQL)
+o Vider la base de données de prod (y compris la structure)
+o Récupérer photos
     ° Histoire vivante
     ° Membres
     ° Galerie
-- Mettre les anciennes versions en backup
-- Mettre à jour les configs frontend et backend
-- Mettre en place des raccourcis (dossier "current")
-- Compiler et mettre en ligne le build de la nouvelle version du frontend
-- Mettre en ligne la nouvelle version du backend et composer install
-- php bin/console doctrine:migrations:migrate
-- php bin/console app:migrate
-- Backupper la base de donnée d'Infomaniak (en SQL)
-
-- Vérifier fonctionnement du formulaire de contact
-- Vérifier mobile
-- Passer en revue toutes les pages
+o Mettre les anciennes versions en backup
+o Mettre à jour les configs frontend et backend
+x Mettre en place des raccourcis (dossier "current")
+o Compiler et mettre en ligne le build de la nouvelle version du frontend
+o Mettre en ligne la nouvelle version du backend et composer install
+o php bin/console doctrine:migrations:migrate
+o php bin/console app:migrate
+o Backupper la base de donnée d'Infomaniak (en SQL)
 
 ------
 Plus tard
 - Tuto admin pour Laurène
 - Discuter avec Laurène pour corriger:
-    ° Les tags
-    ° Les catégories
+    ° Les tags des articles
+    ° Les catégories du forum
+    ° Définir ce que signifie membre actif et combattant et qui l'est

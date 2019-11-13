@@ -23,8 +23,58 @@ class PublicController extends AbstractController
      */
     public function debug(Request $req, EntityManagerInterface $em)
     {
-        $password = "password";
+        $password = "intranet_viviskes";
         return new JR(password_hash($password, PASSWORD_BCRYPT));
+    }
+
+    /**
+     * @Route("/recover", name="recover", methods="POST")
+     */
+    public function recover(Request $req, EntityManagerInterface $em)
+    {
+        $email = $req->get("email");
+        if (!$email) return new JR("Missing data", Response::HTTP_BAD_REQUEST);
+        $user = $em->getRepository(User::class)->findOneBy([
+            "email" => $email
+        ]);
+        if (!$user) return new JR("User not found", Response::HTTP_NOT_FOUND);
+
+        $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*_";
+        $password = substr(str_shuffle($chars), 0, 12);
+        $hash = password_hash($password, PASSWORD_BCRYPT);
+        $user->setPassword($hash);
+        $em->persist($user);
+
+        $subject = "Récupération du mot de passe";
+        $message = "Nouveau mot de passe: " . $password;
+
+        mail($email, $subject, $message);
+
+        return new JR("New password was sent");
+    }
+
+    /**
+     * @Route("/contact", name="contact", methods="POST")
+     */
+    public function contact(Request $req, EntityManagerInterface $em)
+    {
+        $name = $req->get("name");
+        $email = $req->get("email");
+        $subject = $req->get("subject");
+        $message = $req->get("message");
+
+        if (!$name || !$email || !$subject || !$message) {
+            return new JR("Missing data", Response::HTTP_BAD_REQUEST);
+        }
+
+        $content = "<h1>Formulaire de contact de viviskes.ch</h1>" .
+            "<p>Message de " . $name . " (" . $email . ")</p>" .
+            "<p>Sujet: " . $subject . "</p>" .
+            "<p>Message: " . $message . "</p>";
+
+        mail("irinadespot@gmail.com", "Formulaire de contact", $content);
+
+        return new JR("Message was sent");
     }
 
     /**
@@ -63,10 +113,14 @@ class PublicController extends AbstractController
         $data = [];
         foreach ($em->getRepository(User::class)->findAll() as $u) {
             if ($u->getCelticName() && !$u->getIsArchived()) {
+                $url = "uploads/users/" . $u->getId() . ".jpg";
+                $avatar = $_ENV['SERVER_URL'] . $url;
+                if (!file_exists(__DIR__ . "/../../public/" . $url)) $avatar = null;
+
                 array_push($data, [
                     "id" => $u->getId(),
                     "celticName" => $u->getCelticName(),
-                    "hasPhoto" => file_exists("uploads\\users\\" . $u->getId() . ".jpg")
+                    "avatar" => $avatar
                 ]);
             }
         }
@@ -142,7 +196,7 @@ class PublicController extends AbstractController
     public function getArticle(EntityManagerInterface $em, $id)
     {
         $article = $em->getRepository(Article::class)->find($id);
-        if(!$article) return new JR("Article not found", Response::HTTP_NOT_FOUND);
+        if (!$article) return new JR("Article not found", Response::HTTP_NOT_FOUND);
         return new JR(NS::getArticle($article, true));
     }
 }
