@@ -28,7 +28,7 @@ class FormService
         $title = isset($data["title"]) ? $data["title"] : null;
         $content = isset($data["content"]) ? $data["content"] : null;
         $tags = isset($data["tags"]) ? $data["tags"] : null;
-        if(!is_array($tags)) $tags = null;
+        if (!is_array($tags)) $tags = null;
         $isPublished = isset($data["isPublished"]) ? US::getBoolean($data["isPublished"]) : null;
 
         if (!$a) {
@@ -42,11 +42,11 @@ class FormService
             $a->setIsPublished(false);
         }
 
-        if($tags !== null) {
+        if ($tags !== null) {
             foreach ($a->getTags() as $tag) $a->removeTag($tag);
             foreach ($tags as $tagId) {
                 $tag = $em->getRepository(Tag::class)->find($tagId);
-                if(!$tag) return "Tag not found";
+                if (!$tag) return "Tag not found";
                 $a->addTag($tag);
             }
         }
@@ -112,7 +112,8 @@ class FormService
 
         if ($name) {
             $d->setName(pathinfo($name, PATHINFO_FILENAME));
-            $d->setExtension(pathinfo($name, PATHINFO_EXTENSION));
+            $ext = pathinfo($name, PATHINFO_EXTENSION);
+            if ($ext) $d->setExtension($ext);
         }
 
         $em->persist($d);

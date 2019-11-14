@@ -33,10 +33,15 @@ class DocumentController extends AbstractController implements TokenAuthenticate
      */
     public function create(Request $req, EntityManagerInterface $em)
     {
-        $data = $req->get("document");
+        $name = $req->get("name");
+        $folderId = $req->get("folder");
         $file = $req->files->get('file');
-        if (!$data || !$file) return new JR("No data", Response::HTTP_BAD_REQUEST);
+        if (!$name || !$folderId || !$file) return new JR("No data", Response::HTTP_BAD_REQUEST);
 
+        $data = [
+            "name" => $name,
+            "folder" => $folderId
+        ];
         $document = FormService::upsertDocument($em, $data);
         if (is_string($document)) return new JR($document, Response::HTTP_BAD_REQUEST);
 
