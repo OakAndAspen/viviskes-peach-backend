@@ -7,6 +7,7 @@ use App\Service\FormService;
 use App\Service\NormalizerService as NS;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse as JR;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -60,10 +61,14 @@ class DocumentController extends AbstractController implements TokenAuthenticate
         $document = $em->getRepository(Document::class)->find($documentId);
         if (!$document) return new JR("Document not found", Response::HTTP_NOT_FOUND);
 
-        $source = "uploads/media/" . $document->getId() . "." . $document->getExtension();
-        $destination = "downloads/" . $document->getName() . "." . $document->getExtension();
-        copy($source, $destination);
-        return new JR(["url" => $destination]);
+        //$url = "uploads" . DIRECTORY_SEPARATOR . "media" . DIRECTORY_SEPARATOR . $document->getId() . "." . $document->getExtension();
+        $url = "uploads/media/" . $document->getId() . "." . $document->getExtension();
+
+        /*$filename = $document->getName() . "." . $document->getExtension();
+        $response =  new BinaryFileResponse($url);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $filename);
+        return $response;*/
+        return new JR(["url" => $_ENV['SERVER_URL'] . $url]);
     }
 
     /**
