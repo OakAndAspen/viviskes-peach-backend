@@ -19,15 +19,6 @@ use Symfony\Component\Routing\Annotation\Route;
 class PublicController extends AbstractController
 {
     /**
-     * @Route("/debug", name="debug", methods="GET")
-     */
-    public function debug(Request $req, EntityManagerInterface $em)
-    {
-        $password = "intranet_viviskes";
-        return new JR(password_hash($password, PASSWORD_BCRYPT));
-    }
-
-    /**
      * @Route("/recover", name="recover", methods="POST")
      */
     public function recover(Request $req, EntityManagerInterface $em)
@@ -44,13 +35,15 @@ class PublicController extends AbstractController
         $hash = password_hash($password, PASSWORD_BCRYPT);
         $user->setPassword($hash);
         $em->persist($user);
+        $em->flush();
 
         $subject = "Récupération du mot de passe";
         $message = "Nouveau mot de passe: " . $password;
 
-        mail($email, $subject, $message);
-
-        return new JR("New password was sent");
+        if (mail($email, $subject, $message)) {
+            return new JR("New password was sent");
+        }
+        return new JR("An error occured while sending the email", Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -72,9 +65,10 @@ class PublicController extends AbstractController
             "<p>Sujet: " . $subject . "</p>" .
             "<p>Message: " . $message . "</p>";
 
-        mail("irinadespot@gmail.com", "Formulaire de contact", $content);
-
-        return new JR("Message was sent");
+        if (mail("viviskes@gmail.com", "Formulaire de contact", $content)) {
+            return new JR("Message was sent");
+        }
+        return new JR("An error occured while sending the email", Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
     /**
